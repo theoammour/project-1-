@@ -52,21 +52,11 @@ AI_RANDOM_MOVES_BEFORE_STARTING_CRACKING_ALGORITHM = {
 
 AI_SLOWDOWN = 1
 
-# Helper to shuffle a list (since original JS used a prototype extension)
+# Random helper
 def shuffle_list(lst):
     l = list(lst)
     random.shuffle(l)
     return l
-
-# Private keys
-# Carefully generated to adjust difficulty
-PREGENERATED_PRIVATE_KEYS = {
-    8: shuffle_list([7, 1, -1, -1, 0, 0, 0, 0]),
-    10: shuffle_list([1, 1, 1, 1, -1, -1, -1, 0, 0, 0]),
-    12: shuffle_list([15, 1, 2, 1, -1, -2, -1, -1, 0, 0, 0, 0]),
-    14: shuffle_list([18, 1, 4, 1, 1, -1, -3, -2, -1, -1, 0, 0, 0, 0]),
-    16: shuffle_list([19, 1, 5, 1, 1, 1, -1, -4, -2, -1, -1, -1, 0, 0, 0, 0])
-}
 
 # Board Lengths
 MIN_BOARD_LENGTH = 8
@@ -74,6 +64,33 @@ MEDIUM_BOARD_LENGTH = 10
 MAX_BOARD_LENGTH = 12
 SUPER_MAX_BOARD_LENGTH = 14
 MEGA_MAX_BOARD_LENGTH = 16
+
+# Private keys
+PREGENERATED_PRIVATE_KEYS = {
+    # Clés Privées Prégénérées
+    # Ces clés sont conçues pour assurer un équilibre entre esthétique (densité visuelle)
+    # et jouabilité (somme algébrique égale à 1 pour garantir la solvabilité).
+    #
+    # Logique "Tas de Sable" : 
+    # - Amplitude faible (max 2 ou 3) pour un nivellement fluide.
+    # - Haute densité (plusieurs blocs) pour la richesse visuelle.
+    # - Espacement pour permettre une précision de jeu.
+    
+    # Niveau 8 : [2, 1, -1, -1]. Somme=1. 4 blocs actifs.
+    8: [2, 0, 1, 0, -1, 0, -1, 0],
+
+    # Niveau 10 : [2, 1, 1, -1, -1, -1]. Somme=1. 6 blocs actifs.
+    10: [0, 2, 0, 1, 1, 0, -1, 0, -1, -1],
+
+    # Niveau 12 : [3, 1, -1, -1, -1]. Somme=1. 5 blocs actifs.
+    12: [3, 0, 1, 0, -1, 0, -1, 0, -1, 0, 0, 0],
+
+    # Niveau 14 : [2, 1, 1, -1, -1, -1]. Somme=1. 6 blocs actifs.
+    14: [2, 0, 1, 0, 1, 0, -1, 0, -1, 0, -1, 0, 0, 0],
+    
+    # Niveau 16 : [3, 1, 1, -1, -1, -1, -1]. Somme=1. 7 blocs actifs.
+    16: [3, 0, 1, 0, 1, 0, -1, 0, -1, 0, -1, 0, -1, 0, 0, 0]
+}
 
 AUTHORIZED_LENGTH = [
     MIN_BOARD_LENGTH,
@@ -110,7 +127,7 @@ IA_BOARD_COLORS = {
 
 # Dimensions
 SQUARE_WIDTH = 40
-SQUARE_HEIGHT = 20
+SQUARE_HEIGHT = 30
 SPACE_HEIGHT = 4
 SPACE_WIDTH = 4
 BORDER_WIDTH = 8

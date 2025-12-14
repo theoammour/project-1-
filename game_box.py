@@ -44,23 +44,54 @@ class GameBox:
     def init_columns(self):
         # Calculate dynamic dimensions to fit the box
         
-        # 1. Width Calculation
-        total_spacing = (self.current_length - 1) * SPACE_WIDTH
-        available_width = self.rect.width - 2 * BORDER_WIDTH
-        max_col_width = (available_width - total_spacing) // self.current_length
-        self.col_width = min(COLUMN_WIDTH, max_col_width)
+        # 1. Width Calculation - properly account for spacing AND padding
+        # Add horizontal padding to keep columns away from box edges
+        horizontal_padding = 20  # Extra padding on each side
+        available_width = self.rect.width - 2 * BORDER_WIDTH - 2 * horizontal_padding
+        
+        # For larger boards, reduce spacing to fit more columns
+        if self.current_length <= 10:
+            space_width = SPACE_WIDTH  # 4px
+        elif self.current_length <= 12:
+            space_width = 3  # Tighter spacing
+        else:  # 14, 16
+            space_width = 2  # Very tight spacing
+        
+        # Total width formula: n*col_width + (n-1)*space_width = available_width
+        # Solving for col_width: col_width = (available_width - (n-1)*space_width) / n
+        total_spacing = (self.current_length - 1) * space_width
+        calculated_col_width = (available_width - total_spacing) / self.current_length
+        
+        # Ensure minimum width of 5px and don't exceed COLUMN_WIDTH
+        self.col_width = max(5, min(COLUMN_WIDTH, int(calculated_col_width)))
+        self.space_width = space_width  # Store for draw method
+        self.horizontal_padding = horizontal_padding  # Store for draw method
         
         # 2. Height Calculation (Initial pass to find max value)
         # We need to check both message and key values to determine the scale
         # But we haven't created the objects yet. Let's look at the data.
         msg_data = self.my_message
-        key_data = self.key_info['public_key'][self.current_length]
+        if self.player:
+            key_data = self.key_info['private_key'][self.current_length]
+        else:
+            key_data = self.key_info['public_key'][self.current_length]
         
-        max_val = 1 # Avoid div by zero
+        max_val = 1
         if msg_data['message_number']:
             max_val = max(max_val, max(msg_data['message_number']))
-        if key_data['number']:
-            max_val = max(max_val, max(key_data['number']))
+            
+        # Handle both dict (organic) and list (standard) key data
+        if isinstance(key_data, dict) and 'number' in key_data:
+             if key_data['number']:
+                max_val = max(max_val, max(key_data['number']))
+        elif isinstance(key_data, list):
+             # For lists, height is roughly proportional to value, or max value is 3?
+             # Actually, if it's a list, we don't have explicit 'number' (heights).
+             # We can approximate or just use max absolute value?
+             # Standard game logic implies height ~ value absolute?
+             # Let's use max(abs(x) for x in key_data)
+             max_k = max(abs(x) for x in key_data) if key_data else 1
+             max_val = max(max_val, max_k)
             
         # Add some headroom for gameplay (stacking)
         max_val = int(max_val * 1.5) 
@@ -208,45 +239,63 @@ class GameBox:
         s.fill((0, 113, 187, 50))
         self.screen.blit(s, self.rect)
         
-        # Calculate positions
-        # Use dynamic col_width
-        total_width = self.current_length * (self.col_width + SPACE_WIDTH) - SPACE_WIDTH
+        # Calculate positions using dynamic spacing and padding
+        total_width = self.current_length * (self.col_width + self.space_width) - self.space_width
+        # Center the columns in the box
         start_x = self.rect.x + (self.rect.width - total_width) // 2
         
-        # Draw Columns Backgrounds
-        for i in range(self.current_length):
-            x = start_x + i * (self.col_width + SPACE_WIDTH)
-            col_rect = pygame.Rect(x, self.rect.y + BORDER_HEIGHT, self.col_width, self.rect.height - 2 * BORDER_HEIGHT)
-            pygame.draw.rect(self.screen, self.colors['columnColor'], col_rect)
-
-        bottom_y = self.rect.bottom - BORDER_HEIGHT
+        # Set clipping to prevent overflow
+        old_clip = self.screen.get_clip()
+        self.screen.set_clip(self.rect)
         
-        # Draw Message Columns
-        for i, col in enumerate(self.message_columns):
-            x = start_x + i * (self.col_width + SPACE_WIDTH)
-            col.draw(self.screen, x, bottom_y, self.col_width, self.font)
+        try:
+            # Draw Columns Backgrounds
+            for i in range(self.current_length):
+                x = start_x + i * (self.col_width + self.space_width)
+                col_rect = pygame.Rect(x, self.rect.y + BORDER_HEIGHT, self.col_width, self.rect.height - 2 * BORDER_HEIGHT)
+                pygame.draw.rect(self.screen, self.colors['columnColor'], col_rect)
 
-        # Draw Key Columns
-        key_y = self.rect.top + BORDER_HEIGHT
-        for i, col in enumerate(self.key_columns):
-            x = start_x + i * (self.col_width + SPACE_WIDTH)
-            col.draw(self.screen, x, key_y, self.col_width, self.font, is_key=True)
+            bottom_y = self.rect.bottom - BORDER_HEIGHT
+            
+            # Draw Message Columns
+            for i, col in enumerate(self.message_columns):
+                x = start_x + i * (self.col_width + self.space_width)
+                col.draw(self.screen, x, bottom_y, self.col_width, self.font)
+
+            # Draw Key Columns
+            key_y = self.rect.top + BORDER_HEIGHT
+            for i, col in enumerate(self.key_columns):
+                x = start_x + i * (self.col_width + self.space_width)
+                col.draw(self.screen, x, key_y, self.col_width, self.font, is_key=True)
+                
+        finally:
+            # Restore clipping
+            self.screen.set_clip(old_clip)
 
     def check_status(self):
-        # Check for Win (All columns empty)
-        all_empty = True
-        for col in self.message_columns:
-            if col.type != COLUMN_TYPE_3:
-                all_empty = False
-                break
-        if all_empty:
-            return "WIN"
-
-        # Check for Loss (Column too high)
-        # With infinite scaling, we only lose if we physically can't render (height < 1)
-        # But we clamped it to 1. So effectively, no loss by height.
-        # The user stated the game adapts, so we remove the explicit "LOSS" return here.
+        """
+        Vérifie l'état du jeu (Victoire ou Défaite).
+        Condition de victoire : Toutes les colonnes doivent avoir une hauteur <= 1.
+        Cette condition stricte garantit que le joueur a décrypté le message.
+        """
+        all_low = True
+        total_mass = 0
         
+        for col in self.message_columns:
+            # Si la valeur est 0, on s'assure que le type est marqué comme vide
+            if col.value == 0 and col.type != COLUMN_TYPE_3:
+                 col.type = COLUMN_TYPE_3
+            
+            total_mass += max(0, col.value)
+            
+            # Vérification Critique : Hauteur Absolue > 1
+            # On tolère une hauteur de 1 (bruit)
+            if col.value > 1: 
+                all_low = False
+                
+        if all_low:
+             return "WIN"
+
         return "PLAYING"
 
     def apply_key(self):

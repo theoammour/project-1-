@@ -6,12 +6,12 @@ from settings import (
     COLUMN_TYPE_1, COLUMN_TYPE_2, COLUMN_TYPE_3
 )
 
-# --- Helper Functions ---
+# --- Fonctions Utilitaires ---
 
 def positive_modulo(x1, nbr):
     """
-    Positive modulo
-    Ensures the result is always positive: ((x1 % nbr) + nbr) % nbr
+    Modulo positif
+    Assure que le résultat soit toujours positif : ((x1 % nbr) + nbr) % nbr
     """
     return ((x1 % nbr) + nbr) % nbr
 
@@ -19,17 +19,17 @@ pm = positive_modulo
 
 def ternary_to_symbol(x1, x2, x3, x4):
     """
-    Convert a group of 4 ternary digits to the matching character
+    Convertit un groupe de 4 chiffres ternaires en symbole correspondant
     """
     i = pm(x1, 3) + 3 * pm(x2, 3) + 9 * pm(x3, 3) + 27 * pm(x4, 3)
     if 0 <= i < len(BOARD_SYMBOLS):
         return BOARD_SYMBOLS[i]
-    return BOARD_SYMBOLS[-1] # Return the square box if out of range
+    return BOARD_SYMBOLS[-1] # Retourne le carré si hors limites
 
 def integer_mod3_to_ternary(x):
     """
-    Return a ternary from an integer, based on its positive modulo 3 value.
-    Returns -1, 0, or 1.
+    Retourne une valeur ternaire (-1, 0, 1) à partir d'un entier, 
+    basé sur son modulo 3.
     """
     y = pm(x, 3)
     if y == 2:
@@ -41,13 +41,13 @@ i3t = integer_mod3_to_ternary
 
 def symbol_to_ternary(s):
     """
-    Convert a symbol to its ternary representation.
-    Returns a list of 4 ternary digits.
+    Convertit un symbole en sa représentation ternaire.
+    Retourne une liste de 4 chiffres ternaires.
     """
     try:
         i = BOARD_SYMBOLS.index(s)
     except ValueError:
-        i = len(BOARD_SYMBOLS) - 1 # Default to last symbol if not found
+        i = len(BOARD_SYMBOLS) - 1 # Défaut : dernier symbole
 
     x1 = pm(i, 3)
     i = (i - x1) // 3
@@ -61,8 +61,8 @@ def symbol_to_ternary(s):
 
 def string_to_ternary(string):
     """
-    Convert a whole string to its ternary representation.
-    Returns a list of ternary digits (flattened).
+    Convertit une chaîne entière en représentation ternaire.
+    Retourne une liste de chiffres ternaires (aplatie).
     """
     ternaries = []
     for char in string:
@@ -70,43 +70,37 @@ def string_to_ternary(string):
         ternaries.extend(ternary)
     return ternaries
 
-# --- Vector Operations ---
+# --- Opérations Vectorielles ---
 
 def rotate(dim, l, i):
     """
-    "Rotate" columns to the left (i) times.
+    Effectue une rotation circulaire du vecteur vers la gauche.
     """
-    # In Python slicing handles this elegantly, but we need to be careful with 'i' being potentially larger than dim or negative
-    # The original JS implementation:
-    # for (var a = i; a < dim; ++a) new_l.push(l[a]);
-    # for (var a = 0; a < i; ++a) new_l.push(l[a]);
-    # This implies 'i' is expected to be within [0, dim).
-    
-    # Normalize i
+    # Normalisation de l'indice i
     i = i % dim
     return l[i:] + l[:i]
 
 def sum_vectors(l1, l2):
     """
-    Sum array elements together.
+    Somme élément par élément de deux vecteurs.
     """
     return [x + y for x, y in zip(l1, l2)]
 
 def mult_vector(a, l1):
     """
-    Multiply each array element by 'a'.
+    Multiplie chaque élément du vecteur par un scalaire 'a'.
     """
     return [a * x for x in l1]
 
 def l2_norm_sq(v):
     """
-    Squared L2 norm (sum of squares).
+    Norme L2 au carré (somme des carrés).
     """
     return sum(x * x for x in v)
 
 def score(public_key):
     """
-    Score the public key to ensure it's playable.
+    Évalue la clé publique pour s'assurer de sa jouabilité (complexité).
     """
     max_pk = max(public_key)
     min_pk = min(public_key)
@@ -119,24 +113,26 @@ def score(public_key):
     else:
         return distance / t
 
-# --- Key Generation ---
+# --- Génération de Clés ---
 
 def gen_public_key(dim, sk, repet):
     """
-    Generate public key (When not animated).
+    Génère une clé publique à partir d'une clé privée par rotations et combinaisons linéaires.
     """
-    pk = list(sk) # Copy
+    # Gestion des entrées dictionnaire (pour les clés complexes)
+    private_key_vector = sk
+    if isinstance(sk, dict):
+        private_key_vector = sk['key']
+        
+    pk = list(private_key_vector) # Copie
     
     for _ in range(repet):
-        k = random.randint(0, dim) # Random rotation amount. Note: JS used random() * (dim+1) floor, so 0 to dim inclusive?
-                                   # JS: Math.floor(Math.random() * (dim + 1)) -> 0 to dim.
-                                   # rotate function uses 'i' as index. If i=dim, rotate(dim, l, dim) is same as rotate(dim, l, 0).
+        k = random.randint(0, dim) # Rotation aléatoire
         r = -1
         if random.randint(0, 1) == 1:
             r = 1
             
-        # pk = sum(pk, mult(r, rotate(dim, sk, k)))
-        rotated_sk = rotate(dim, sk, k)
+        rotated_sk = rotate(dim, private_key_vector, k)
         weighted_rotated_sk = mult_vector(r, rotated_sk)
         pk = sum_vectors(pk, weighted_rotated_sk)
         
@@ -144,22 +140,39 @@ def gen_public_key(dim, sk, repet):
 
 def gen_public_keys():
     """
-    Prepare every public keys (one for each board length).
+    Prépare les clés publiques pour chaque taille de plateau autorisée.
     """
     pk = {}
     for length in AUTHORIZED_LENGTH:
         is_generated = False
+        attempts = 0
+        best_pk = None
+        best_score = -1
+        
         while not is_generated:
-            # sks is PREGENERATED_PRIVATE_KEYS
+            attempts += 1
+            # sks correspond aux clés privées pré-générées
             candidate_pk = gen_public_key(length, PREGENERATED_PRIVATE_KEYS[length], REPEAT_GEN_PUBLIC_KEY_LIST[length])
-            if score(candidate_pk) >= 2:
+            s = score(candidate_pk)
+            
+            if s > best_score:
+                best_score = s
+                best_pk = candidate_pk
+            
+            if s >= 2:
                 pk[length] = candidate_pk
+                is_generated = True
+            elif attempts > 100:
+                # Utilisation de la meilleure clé trouvée après 100 tentatives
+                # pour garantir le chargement du jeu.
+                pk[length] = best_pk
                 is_generated = True
     return pk
 
 def get_key_info():
     """
-    Create public keys and compute key info (for each board length).
+    Génère les structures de données complètes pour les clés (publiques et privées).
+    Sépare les composantes positives et négatives pour l'affichage graphique.
     """
     pk = gen_public_keys()
     result = {
@@ -168,7 +181,7 @@ def get_key_info():
     }
     
     for index in AUTHORIZED_LENGTH:
-        # Initialize structures
+        # Initialisation
         result['public_key'][index] = {
             'key': pk[index],
             'normal_key': [],
@@ -179,14 +192,19 @@ def get_key_info():
         sub_pk = pk[index]
         sub_sk = PREGENERATED_PRIVATE_KEYS[index]
         
+        # Handle dict input for organic keys
+        sk_vector = sub_sk
+        if isinstance(sub_sk, dict):
+            sk_vector = sub_sk['key']
+        
         result['private_key'][index] = {
-            'key': sub_sk,
+            'key': sk_vector,
             'normal_key': [],
             'reverse_key': [],
             'number': []
         }
         
-        # Process Public Key
+        # Traitement de la Clé Publique
         for val in sub_pk:
             if val > 0:
                 result['public_key'][index]['normal_key'].append(COLUMN_TYPE_1)
@@ -201,8 +219,13 @@ def get_key_info():
                 result['public_key'][index]['reverse_key'].append(COLUMN_TYPE_3)
                 result['public_key'][index]['number'].append(val)
                 
-        # Process Private Key
-        for val in sub_sk:
+        # Traitement de la Clé Privée
+        # Handle dict input for organic keys (14, 16)
+        private_key_vector = sub_sk
+        if isinstance(sub_sk, dict):
+            private_key_vector = sub_sk['key']
+            
+        for val in private_key_vector:
             if val > 0:
                 result['private_key'][index]['normal_key'].append(COLUMN_TYPE_1)
                 result['private_key'][index]['reverse_key'].append(COLUMN_TYPE_2)
@@ -218,11 +241,11 @@ def get_key_info():
                 
     return result
 
-# --- Message Data ---
+# --- Données du Message ---
 
 def create_a_data_message(crypted_message, current_length):
     """
-    Compute current message data.
+    Formate le message chiffré pour l'affichage dans le jeu.
     """
     data_message = {
         'message_number': [],

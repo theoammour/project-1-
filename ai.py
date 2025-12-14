@@ -30,13 +30,13 @@ class AI:
         self.move_queue = []
 
     def plan_moves(self):
-        # Simple AI: Random moves for now, or logic to solve the column
-        # The original game's AI seems to follow a pre-determined or reactive path.
-        # For this port, let's make it try to reduce the highest column.
+        # IA Simplifiée : Tentative de réduction de la colonne la plus haute.
+        # Dans cette version, l'IA génère des mouvements semi-aléatoires pour simuler
+        # une activité de "décodage" adverse.
         
-        # This is a placeholder for the actual solving logic.
-        # In a real game, the AI would analyze the board.
-        # Here we just queue some random valid moves to simulate activity.
+        # En production réelle, l'IA analyserait le vecteur de réseau pour trouver
+        # le vecteur le plus proche (CVP Solver).
+        # Ici, nous mettons en file des actions valides.
         if not self.move_queue:
             for _ in range(5):
                 action = random.choice([self.ACTION_LEFT, self.ACTION_RIGHT, self.ACTION_INVERT])
