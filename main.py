@@ -2,7 +2,7 @@ import pygame
 import sys
 import os
 import random
-from settings import APP_URL, AUTHORIZED_LENGTH, MIN_BOARD_LENGTH, PLAYER_BOARD_COLORS, IA_BOARD_COLORS
+from settings import APP_URL, AUTHORIZED_LENGTH, MIN_BOARD_LENGTH, PLAYER_BOARD_COLORS, IA_BOARD_COLORS, COLUMN_TYPE_1, COLUMN_TYPE_2, COLUMN_TYPE_3, REPEAT_GEN_PUBLIC_KEY_LIST
 from game_box import GameBox
 from cryptris_logic import get_key_info, create_a_data_message, gen_public_key, score, PREGENERATED_PRIVATE_KEYS, REPEAT_GEN_PUBLIC_KEY_LIST, rotate, mult_vector, sum_vectors
 from ai import AI
@@ -66,234 +66,6 @@ class MenuScene(Scene):
         self.font_menu = pygame.font.SysFont("Arial", 36)
         
         self.menu_items = ["ARCADE", "QUIT"]
-        self.selected_index = 0
-        
-        # Load Assets
-        self.bg_image = None
-        self.logo_main = None
-        self.logo_esiea = None
-        self.logo_inria = None
-        self.logo_digital = None
-        
-        try:
-            # Background
-            bg_path = os.path.join("cryptris", "img", "bg-circuits.png")
-            self.bg_image = pygame.image.load(bg_path).convert()
-            self.bg_image = pygame.transform.scale(self.bg_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
-            
-            # Logos
-            self.logo_main = pygame.image.load(os.path.join("cryptris", "img", "logo-cryptris-large.png")).convert_alpha()
-            self.logo_esiea = pygame.image.load(os.path.join("cryptris", "img", "logo-esiea.png")).convert_alpha()
-            self.logo_inria = pygame.image.load(os.path.join("cryptris", "img", "logo-inria-medium.png")).convert_alpha()
-            self.logo_digital = pygame.image.load(os.path.join("cryptris", "img", "logo-digital-cuisine-medium.png")).convert_alpha()
-
-            # Rescale ESIEA logo if too big (e.g., max width 200)
-            if self.logo_esiea.get_width() > 250:
-                scale = 250 / self.logo_esiea.get_width()
-                new_size = (int(self.logo_esiea.get_width() * scale), int(self.logo_esiea.get_height() * scale))
-                self.logo_esiea = pygame.transform.scale(self.logo_esiea, new_size)
-                
-        except Exception as e:
-            print(f"Error loading menu assets: {e}")
-
-    def draw(self, screen):
-        # Background
-        if self.bg_image:
-            screen.blit(self.bg_image, (0, 0))
-        else:
-            screen.fill(BACKGROUND_COLOR)
-            
-        # 1. Main Logo (Top Center)
-        if self.logo_main:
-            # Position at y=100 centered
-            rect = self.logo_main.get_rect(center=(SCREEN_WIDTH//2, 150))
-            screen.blit(self.logo_main, rect)
-        else:
-            # Fallback text
-            title = self.font_large.render("CRYPTRIS", True, (0, 255, 255))
-            screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, 100))
-
-        # 2. ESIEA Logo (Top Right)
-        if self.logo_esiea:
-            # Padding from edges
-            margin = 30
-            # Position: Top Right
-            x = SCREEN_WIDTH - self.logo_esiea.get_width() - margin
-            y = margin
-            screen.blit(self.logo_esiea, (x, y))
-
-        # 3. Footer Logos (Bottom Center/Sides)
-        if self.logo_inria and self.logo_digital:
-            margin_bottom = 40
-            spacing = 50
-            
-            # Group width
-            total_w = self.logo_inria.get_width() + self.logo_digital.get_width() + spacing
-            start_x = (SCREEN_WIDTH - total_w) // 2
-            y = SCREEN_HEIGHT - self.logo_inria.get_height() - margin_bottom
-            
-            screen.blit(self.logo_digital, (start_x, y)) # Digital Cuisine first?
-            screen.blit(self.logo_inria, (start_x + self.logo_digital.get_width() + spacing, y))
-
-        # 4. Vertical Menu
-        menu_start_y = 450
-        item_spacing = 60
-        
-        for i, item in enumerate(self.menu_items):
-            is_selected = (i == self.selected_index)
-            
-            text_str = item
-            if is_selected:
-                text_str = f"> {item} <"
-                color = (0, 255, 255) # Cyan
-            else:
-                color = (0, 100, 150) # Dim Blue
-                
-            text = self.font_menu.render(text_str, True, color)
-            
-            # Center
-            x = SCREEN_WIDTH // 2 - text.get_width() // 2
-            y = menu_start_y + i * item_spacing
-            
-            # Selected Glow
-            if is_selected:
-                # Draw simple shadow/glow
-                shadow = self.font_menu.render(text_str, True, (0, 50, 50))
-                screen.blit(shadow, (x+2, y+2))
-            
-            screen.blit(text, (x, y))
-
-    def handle_event(self, event):
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP:
-                self.selected_index = (self.selected_index - 1) % len(self.menu_items)
-            elif event.key == pygame.K_DOWN:
-                self.selected_index = (self.selected_index + 1) % len(self.menu_items)
-            elif event.key == pygame.K_RETURN:
-                self.trigger_menu_action()
-
-    def trigger_menu_action(self):
-        selection = self.menu_items[self.selected_index]
-        if selection == "ARCADE":
-             # Go to Name/Difficulty Config
-             self.manager.switch_to(ConfigScene())
-        elif selection == "QUIT":
-            pygame.quit()
-            sys.exit()
-
-class ConfigScene(Scene):
-    def __init__(self):
-        super().__init__()
-        self.font = pygame.font.SysFont("Arial", 48)
-        self.small_font = pygame.font.SysFont("Arial", 24)
-        self.selected_length_index = 0
-        self.lengths = AUTHORIZED_LENGTH
-        self.player_name = ""
-        
-        # Load background
-        try:
-            bg_path = os.path.join("cryptris", "img", "bg-circuits.png")
-            self.bg_image = pygame.image.load(bg_path).convert()
-            # Scale background to new resolution
-            self.bg_image = pygame.transform.scale(self.bg_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
-        except:
-            self.bg_image = None
-
-    def draw(self, screen):
-        if self.bg_image:
-            screen.blit(self.bg_image, (0, 0))
-        else:
-            screen.fill(BACKGROUND_COLOR)
-        
-        # Title
-        title = self.font.render("CONFIGURATION", True, (255, 255, 255))
-        screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, 150))
-        
-        # Name Input
-        name_label = self.small_font.render("Enter Your Name:", True, (200, 200, 200))
-        screen.blit(name_label, (SCREEN_WIDTH//2 - name_label.get_width()//2, 250))
-        
-        name_surface = self.font.render(self.player_name + "_", True, (0, 255, 255))
-        screen.blit(name_surface, (SCREEN_WIDTH//2 - name_surface.get_width()//2, 290))
-
-    def handle_event(self, event):
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
-                self.selected_length_index = (self.selected_length_index - 1) % len(self.lengths)
-            elif event.key == pygame.K_RIGHT:
-                self.selected_length_index = (self.selected_length_index + 1) % len(self.lengths)
-            elif event.key == pygame.K_RETURN:
-                if self.player_name.strip() == "":
-                    self.player_name = "Player"
-                selected_length = self.lengths[self.selected_length_index]
-                self.manager.switch_to(GameScene(selected_length, self.player_name))
-            elif event.key == pygame.K_ESCAPE:
-                self.manager.switch_to(MenuScene())
-            elif event.key == pygame.K_BACKSPACE:
-                self.player_name = self.player_name[:-1]
-            else:
-                # Limit name length
-                if len(self.player_name) < 12 and event.unicode.isprintable():
-                    self.player_name += event.unicode
-        
-        # Difficulty Selection (Draw method continued)
-        # Because we replaced the whole class content incorrectly in previous step by omitting lines, I need to be careful with replace_file_content logic.
-        # But wait, I am replacing from top of file. This is risky if I don't provide the whole chunk correctly.
-        # Let's target specific blocks.
-
-# RE-STRATEGIZING:
-# I will make smaller targeted edits.
-
-
-class SceneManager:
-    def __init__(self, screen):
-        self.screen = screen
-        self.current_scene = None
-
-    def switch_to(self, scene):
-        self.current_scene = scene
-        self.current_scene.manager = self
-        self.current_scene.on_enter()
-
-    def run(self):
-        clock = pygame.time.Clock()
-        while True:
-            dt = clock.tick(FPS)
-            
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                self.current_scene.handle_event(event)
-            
-            self.current_scene.update(pygame.time.get_ticks())
-            self.current_scene.draw(self.screen)
-            
-            pygame.display.flip()
-
-class Scene:
-    def __init__(self):
-        self.manager = None
-
-    def on_enter(self):
-        pass
-
-    def handle_event(self, event):
-        pass
-
-    def update(self, current_time):
-        pass
-
-    def draw(self, screen):
-        pass
-
-class MenuScene(Scene):
-    def __init__(self):
-        super().__init__()
-        self.font_large = pygame.font.SysFont("Arial", 48, bold=True)
-        self.font_menu = pygame.font.SysFont("Arial", 36)
-        
-        self.menu_items = ["ARCADE", "QUITTER"]
         self.selected_index = 0
         
         # Load Assets
@@ -411,14 +183,217 @@ class MenuScene(Scene):
             pygame.quit()
             sys.exit()
 
+class KeyCreationScene(Scene):
+    def __init__(self, player_name="Player"):
+        super().__init__()
+        self.player_name = player_name
+        self.font = pygame.font.SysFont("Arial", 28, bold=True)
+        self.small_font = pygame.font.SysFont("Arial", 18)
+        self.length = 8
+        self.key_vector = [0] * self.length # This will now represent the ACCUMULATED key (on board)
+        self.selected_col = 0
+        
+        # Define areas
+        self.grid_width = 800
+        self.grid_height = 600
+        self.grid_x = (SCREEN_WIDTH // 2) - (self.grid_width // 2) - 150 # Shift left
+        self.grid_y = (SCREEN_HEIGHT - self.grid_height) // 2 + 50
+        
+        # Dummy data for GameBox
+        dummy_key_info = get_key_info()
+        
+        # Initialiser avec une "Clé Joueur" (falling piece) VIDE pour l'instant
+        # On va injecter des blocs un par un via spawn_new_block()
+        dummy_key_info['private_key'][self.length] = {
+            'key': [0] * self.length,
+            'normal_key': [COLUMN_TYPE_3] * self.length,
+            'reverse_key': [COLUMN_TYPE_3] * self.length,
+            'number': [0] * self.length
+        }
+        
+        # Le "Message" sera notre tableau vide qui se remplit (la clé en construction)
+        dummy_message = create_a_data_message([0]*self.length, self.length)
+        
+        self.game_box = GameBox(
+            None,
+            self.grid_x,
+            self.grid_y,
+            self.grid_width,
+            self.grid_height,
+            self.length,
+            dummy_key_info,
+            dummy_message,
+            player=True
+        )
+        
+        self.timer_start = pygame.time.get_ticks()
+        self.was_falling = False
+        
+        # Spawn first block
+        self.spawn_new_block()
+
+    def spawn_new_block(self):
+        # Créer un bloc ou une pile de blocs (hauteur 1-3) à une position aléatoire
+        # Pour simuler un bloc qui tombe, on met à jour la "Clé Privée" (falling key) du GameBox
+        
+        new_key_vector = [0] * self.length
+        
+        # Décider combien de colonnes sont actives (1, 2 ou 3)
+        # Augmentation de la fréquence des colonnes multiples selon la demande
+        num_cols = random.choices([1, 2, 3], weights=[0.2, 0.5, 0.3])[0]
+        
+        # Choisir des colonnes aléatoires
+        indices = random.sample(range(self.length), num_cols)
+        
+        for idx in indices:
+            # Hauteur aléatoire entre 1 et 3
+            height = random.randint(1, 3)
+            new_key_vector[idx] = height
+
+        # Mettre à jour les données de la GameBox
+        key_cols = self.game_box.key_columns
+        
+        for i in range(self.length):
+            val = new_key_vector[i]
+            col = key_cols[i]
+            col.value = val
+            col.reset() # Remettre en haut
+            
+            if val > 0:
+                col.type = COLUMN_TYPE_1 # Bleu
+            else:
+                col.type = COLUMN_TYPE_3 # Vide
+                
+        # On réinitialise l'état chute
+        self.was_falling = False
+
+    def update(self, current_time):
+        self.game_box.update()
+        
+        # Détection de fin de chute
+        is_falling = any(col.is_falling for col in self.game_box.key_columns)
+        
+        if self.was_falling and not is_falling:
+            # Vient de finir de tomber
+            # On spawn le prochain bloc
+            self.spawn_new_block()
+            
+        self.was_falling = is_falling
+        
+        # Mettre à jour notre key_vector interne basé sur le plateau (message_columns)
+        # pour le passage à la scène suivante
+        for i, col in enumerate(self.game_box.message_columns):
+            val = col.value
+            if col.type == COLUMN_TYPE_2: # Négatif/Foncé
+                val *= -1
+            elif col.type == COLUMN_TYPE_3: # Vide
+                val = 0
+            self.key_vector[i] = val
+
+    def get_strength_info(self):
+        try:
+            rep = REPEAT_GEN_PUBLIC_KEY_LIST.get(self.length, 10)
+        except:
+            rep = 10
+            
+        pk = gen_public_key(self.length, self.key_vector, rep)
+        s = score(pk)
+        
+        if s < 0.5:
+            label = "WEAK"
+            color = (255, 50, 50)
+            level_pct = min(1.0, s / 0.5) * 0.33
+        elif s < 1.5:
+            label = "MEDIUM"
+            color = (255, 255, 0)
+            level_pct = 0.33 + min(1.0, (s - 0.5) / 1.0) * 0.33
+        else:
+            label = "STRONG"
+            color = (0, 255, 0)
+            level_pct = 0.66 + min(1.0, (s - 1.5) / 1.0) * 0.34
+            
+        return label, color, min(1.0, max(0.05, level_pct))
+
+    def draw(self, screen):
+        # Draw Background
+        if self.game_box.bg_image:
+             bg_rect = self.game_box.bg_image.get_rect(center=screen.get_rect().center)
+             screen.blit(pygame.transform.scale(self.game_box.bg_image, (SCREEN_WIDTH, SCREEN_HEIGHT)), (0,0))
+        else:
+            screen.fill(BACKGROUND_COLOR)
+            
+        # Draw Title
+        title_font = pygame.font.SysFont("Arial", 40, bold=True)
+        title = title_font.render("PRIVATE KEY CREATION", True, (0, 255, 255))
+        screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, 30))
+
+        # --- Draw GameBox (Grid) ---
+        self.game_box.screen = screen
+        self.game_box.draw()
+        
+        # --- Side Panel (Right) ---
+        panel_x = self.grid_x + self.grid_width + 50
+        panel_y = self.grid_y
+        
+        # 1. Player Info & Timer
+        lbl_player = self.font.render(f"Player : {self.player_name}", True, (255, 255, 255))
+        screen.blit(lbl_player, (panel_x, panel_y))
+        
+        elapsed = (pygame.time.get_ticks() - self.timer_start) // 1000
+        m, s = divmod(elapsed, 60)
+        lbl_timer = self.font.render(f"Time : {m:02}:{s:02}", True, (0, 255, 0))
+        screen.blit(lbl_timer, (panel_x, panel_y + 40))
+        
+        # 2. Security Level Visual
+        str_lbl, str_color, str_pct = self.get_strength_info()
+        
+        sec_y = panel_y + 120
+        lbl_sec = self.font.render("SECURITY LEVEL", True, (0, 200, 255))
+        screen.blit(lbl_sec, (panel_x, sec_y))
+        
+        # Bar
+        bar_w = 200
+        bar_h = 30
+        pygame.draw.rect(screen, (50, 50, 50), (panel_x, sec_y + 40, bar_w, bar_h))
+        pygame.draw.rect(screen, str_color, (panel_x, sec_y + 40, int(bar_w * str_pct), bar_h))
+        pygame.draw.rect(screen, (200, 200, 200), (panel_x, sec_y + 40, bar_w, bar_h), 2)
+        
+        lbl_str = self.font.render(str_lbl, True, str_color)
+        screen.blit(lbl_str, (panel_x + bar_w + 20, sec_y + 40))
+        
+        # 3. Controls / Instructions
+        ctrl_y = sec_y + 150
+        ctrl_text_y = ctrl_y + 80
+        lines = [
+            "LEFT/RIGHT : Move",
+            "SPACE : Invert Color",
+            "DOWN : Drop",
+            "ENTER : VALIDATE KEY"
+        ]
+        for i, line in enumerate(lines):
+            t = self.small_font.render(line, True, (180, 180, 180))
+            screen.blit(t, (panel_x, ctrl_text_y + i * 25))
+
+    def handle_event(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RETURN:
+                # Validate Key
+                self.manager.switch_to(GameScene(self.length, player_name=self.player_name, custom_key=self.key_vector))
+            elif event.key == pygame.K_ESCAPE:
+                self.manager.switch_to(ConfigScene())
+            else:
+                # Delegate controls to GameBox (Left, Right, Down, Space)
+                self.game_box.handle_input(event)
+
 class ConfigScene(Scene):
     def __init__(self):
         super().__init__()
         self.font = pygame.font.SysFont("Arial", 48)
         self.small_font = pygame.font.SysFont("Arial", 24)
         self.selected_length_index = 0
-        self.lengths = AUTHORIZED_LENGTH
+        self.lengths = ["CREATE KEY"] + AUTHORIZED_LENGTH
         self.player_name = ""
+        self.state = "NAME_INPUT" # States: "NAME_INPUT", "DIFFICULTY_SELECT"
         
         # Load background
         try:
@@ -437,49 +412,83 @@ class ConfigScene(Scene):
         
         # Title
         title = self.font.render("CONFIGURATION", True, (255, 255, 255))
-        screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, 150))
+        screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, 50))
         
-        # Name Input
-        name_label = self.small_font.render("Entrez votre nom :", True, (200, 200, 200))
-        screen.blit(name_label, (SCREEN_WIDTH//2 - name_label.get_width()//2, 250))
-        
-        name_surface = self.font.render(self.player_name + "_", True, (0, 255, 255))
-        screen.blit(name_surface, (SCREEN_WIDTH//2 - name_surface.get_width()//2, 290))
+        if self.state == "NAME_INPUT":
+            # Name Input UI
+            name_label = self.small_font.render("Enter your name :", True, (200, 200, 200))
+            screen.blit(name_label, (SCREEN_WIDTH//2 - name_label.get_width()//2, 250))
+            
+            name_surface = self.font.render(self.player_name + "_", True, (0, 255, 255))
+            screen.blit(name_surface, (SCREEN_WIDTH//2 - name_surface.get_width()//2, 290))
+            
+            instr = self.small_font.render("Press ENTER to validate", True, (150, 150, 150))
+            screen.blit(instr, (SCREEN_WIDTH//2 - instr.get_width()//2, 400))
+            
+        elif self.state == "DIFFICULTY_SELECT":
+            # Greeting
+            greet = self.small_font.render(f"Hello {self.player_name} !", True, (0, 255, 255))
+            screen.blit(greet, (SCREEN_WIDTH//2 - greet.get_width()//2, 150))
 
-        # Difficulty Selection
-        sel_text = self.small_font.render("Selectionnez la difficulte (Colonnes) :", True, (200, 200, 200))
-        screen.blit(sel_text, (SCREEN_WIDTH//2 - sel_text.get_width()//2, 400))
-        
-        # Draw options
-        for i, length in enumerate(self.lengths):
-            color = (0, 255, 0) if i == self.selected_length_index else (100, 100, 100)
-            opt_text = self.font.render(str(length), True, color)
-            x = SCREEN_WIDTH//2 + (i - len(self.lengths)//2) * 100 - opt_text.get_width()//2
-            screen.blit(opt_text, (x, 450))
+            # Difficulty Selection
+            sel_text = self.small_font.render("Select Difficulty (Columns) :", True, (200, 200, 200))
+            screen.blit(sel_text, (SCREEN_WIDTH//2 - sel_text.get_width()//2, 220))
+            
+            # Draw options VERTICALLY
+            start_y = 300
+            spacing_y = 60
+            
+            for i, length in enumerate(self.lengths):
+                is_selected = (i == self.selected_length_index)
+                color = (0, 255, 0) if is_selected else (100, 100, 100)
+                
+                # Add highlighting arrow/effect if selected
+                text_str = str(length)
+                if is_selected:
+                    text_str = f"> {length} <"
+                
+                opt_text = self.font.render(text_str, True, color)
+                
+                x = SCREEN_WIDTH//2 - opt_text.get_width()//2
+                y = start_y + i * spacing_y
+                screen.blit(opt_text, (x, y))
 
-        # Instructions
-        text = self.small_font.render("Tapez Nom, Fleches pour Difficulte, ENTREE pour Demarrer", True, (200, 200, 200))
-        screen.blit(text, (SCREEN_WIDTH//2 - text.get_width()//2, 600))
+            # Instructions
+            text = self.small_font.render("UP/DOWN to Choose, ENTER to Play", True, (200, 200, 200))
+            screen.blit(text, (SCREEN_WIDTH//2 - text.get_width()//2, 750))
+            
+            back = self.small_font.render("ESCAPE to go back", True, (100, 100, 100))
+            screen.blit(back, (SCREEN_WIDTH//2 - back.get_width()//2, 800))
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
-                self.selected_length_index = (self.selected_length_index - 1) % len(self.lengths)
-            elif event.key == pygame.K_RIGHT:
-                self.selected_length_index = (self.selected_length_index + 1) % len(self.lengths)
-            elif event.key == pygame.K_RETURN:
-                if self.player_name.strip() == "":
-                    self.player_name = "Joueur"
-                selected_length = self.lengths[self.selected_length_index]
-                self.manager.switch_to(GameScene(selected_length, self.player_name))
-            elif event.key == pygame.K_ESCAPE:
-                self.manager.switch_to(MenuScene())
-            elif event.key == pygame.K_BACKSPACE:
-                self.player_name = self.player_name[:-1]
-            else:
-                # Limit name length
-                if len(self.player_name) < 12 and event.unicode.isprintable():
-                    self.player_name += event.unicode
+            if self.state == "NAME_INPUT":
+                if event.key == pygame.K_RETURN:
+                    if self.player_name.strip() == "":
+                        self.player_name = "Player"
+                    self.state = "DIFFICULTY_SELECT"
+                elif event.key == pygame.K_ESCAPE:
+                    self.manager.switch_to(MenuScene())
+                elif event.key == pygame.K_BACKSPACE:
+                    self.player_name = self.player_name[:-1]
+                else:
+                    # Limit name length
+                    if len(self.player_name) < 12 and event.unicode.isprintable():
+                        self.player_name += event.unicode
+                        
+            elif self.state == "DIFFICULTY_SELECT":
+                if event.key == pygame.K_UP:
+                    self.selected_length_index = (self.selected_length_index - 1) % len(self.lengths)
+                elif event.key == pygame.K_DOWN:
+                    self.selected_length_index = (self.selected_length_index + 1) % len(self.lengths)
+                elif event.key == pygame.K_RETURN:
+                    selected = self.lengths[self.selected_length_index]
+                    if selected == "CREATE KEY":
+                        self.manager.switch_to(KeyCreationScene(self.player_name))
+                    else:
+                        self.manager.switch_to(GameScene(selected, self.player_name))
+                elif event.key == pygame.K_ESCAPE:
+                    self.state = "NAME_INPUT"
 
 class VictoryPopup:
     def __init__(self, screen_width, screen_height, decrypted_code, on_menu, on_next):
@@ -536,7 +545,7 @@ class VictoryPopup:
         pygame.draw.rect(screen, (255, 255, 255), rect, 2)
         
         # Titre
-        title_surf = self.title_font.render("CHALLENGE SOLVED", True, (255, 255, 255))
+        title_surf = self.title_font.render("CHALLENGE UNLOCKED", True, (255, 255, 255))
         screen.blit(title_surf, (self.x + 20, self.y + 15))
         
         # Contenu - Icône Cadenas (Gauche)
@@ -566,7 +575,7 @@ class VictoryPopup:
         # Menu Button
         c_menu = self.btn_hover_color if self.rect_menu.collidepoint(mx, my) else self.btn_menu_color
         pygame.draw.rect(screen, c_menu, self.rect_menu)
-        txt_menu = self.btn_font.render("ARCADE MENU", True, (255, 255, 255))
+        txt_menu = self.btn_font.render("MAIN MENU", True, (255, 255, 255))
         screen.blit(txt_menu, (self.rect_menu.centerx - txt_menu.get_width()//2, self.rect_menu.centery - txt_menu.get_height()//2))
         
         # Next Button
@@ -584,35 +593,80 @@ class VictoryPopup:
                     self.on_next()
 
 class GameScene(Scene):
-    def __init__(self, length=MIN_BOARD_LENGTH, player_name="Joueur"):
+    def __init__(self, length=MIN_BOARD_LENGTH, player_name="Player", custom_key=None):
         super().__init__()
         self.current_length = length
         self.player_name = player_name
-        self.key_info = get_key_info()
-        self.victory_popup = None
         
-        # Override removed to restore original difficulty
+        # 1. Player Key Info (Always Standard)
+        self.player_key_info = get_key_info()
+        
+        # 2. AI Key Info (Standard OR Custom)
+        self.ai_key_info = get_key_info() # Start with standard copy
+        
+        if custom_key:
+            # Inject Custom Key into AI Key Info (NOT Player)
+            # 1. Private Key
+            sk_entry = self.ai_key_info['private_key'][self.current_length]
+            sk_entry['key'] = custom_key
+            sk_entry['normal_key'] = []
+            sk_entry['reverse_key'] = []
+            sk_entry['number'] = []
+            
+            for val in custom_key:
+                if val > 0:
+                    sk_entry['normal_key'].append(COLUMN_TYPE_1)
+                    sk_entry['reverse_key'].append(COLUMN_TYPE_2)
+                    sk_entry['number'].append(val)
+                elif val < 0:
+                    sk_entry['normal_key'].append(COLUMN_TYPE_2)
+                    sk_entry['reverse_key'].append(COLUMN_TYPE_1)
+                    sk_entry['number'].append(-1 * val)
+                else:
+                    sk_entry['normal_key'].append(COLUMN_TYPE_3)
+                    sk_entry['reverse_key'].append(COLUMN_TYPE_3)
+                    sk_entry['number'].append(val)
+            
+            # 2. Public Key (Derived from Custom Private Key)
+            rep = REPEAT_GEN_PUBLIC_KEY_LIST.get(self.current_length, 10)
+            pk_vector = gen_public_key(self.current_length, custom_key, rep)
+            
+            pk_entry = self.ai_key_info['public_key'][self.current_length]
+            pk_entry['key'] = pk_vector
+            pk_entry['normal_key'] = []
+            pk_entry['reverse_key'] = []
+            pk_entry['number'] = []
+            
+            for val in pk_vector:
+                if val > 0:
+                    pk_entry['normal_key'].append(COLUMN_TYPE_1)
+                    pk_entry['reverse_key'].append(COLUMN_TYPE_2)
+                    pk_entry['number'].append(val)
+                elif val < 0:
+                    pk_entry['normal_key'].append(COLUMN_TYPE_2)
+                    pk_entry['reverse_key'].append(COLUMN_TYPE_1)
+                    pk_entry['number'].append(-1 * val)
+                else:
+                    pk_entry['normal_key'].append(COLUMN_TYPE_3)
+                    pk_entry['reverse_key'].append(COLUMN_TYPE_3)
+                    pk_entry['number'].append(val)
 
-
-        self.target_message = self.generate_solvable_message(self.current_length)
+        # Generate Puzzles (Messages)
+        # Player gets a puzzle based on PLAYER key
+        self.player_target_message = self.generate_solvable_message(self.current_length, self.player_key_info)
+        
+        # AI gets a puzzle based on AI key
+        self.ai_target_message = self.generate_solvable_message(self.current_length, self.ai_key_info)
         
         # Layout: Player Left, AI Right with Central Gap
-        # Replicating original game layout:
-        # - Wide central gap for controls/timer
-        # - Boxes on sides
-        # - Space at bottom
+        center_width = 300  
+        side_margin = 150   
         
-        # Layout: Player Left, AI Right with Central Gap
-        center_width = 300  # Slightly reduced gap to give more space to boxes while keeping margin
-        side_margin = 150   # HUGE margin to prevent left cut-off
-        
-        # Total width available for boxes
         available_width = SCREEN_WIDTH - center_width - 2 * side_margin
         box_width = available_width // 2
         
-        # Vertical Layout
         top_margin = 120 
-        bottom_margin = 80 # Leave space for numbers at bottom
+        bottom_margin = 80 
         box_height = SCREEN_HEIGHT - top_margin - bottom_margin
         
         self.player_box = GameBox(
@@ -622,8 +676,8 @@ class GameScene(Scene):
             width=box_width, 
             height=box_height,
             current_length=self.current_length,
-            key_info=self.key_info,
-            my_message=self.target_message,
+            key_info=self.player_key_info,
+            my_message=self.player_target_message,
             player=True
         )
         
@@ -634,8 +688,8 @@ class GameScene(Scene):
             width=box_width,
             height=box_height,
             current_length=self.current_length,
-            key_info=self.key_info,
-            my_message=self.target_message, 
+            key_info=self.ai_key_info,
+            my_message=self.ai_target_message, 
             player=False
         )
         
@@ -647,25 +701,20 @@ class GameScene(Scene):
         self.start_time = pygame.time.get_ticks() # Start Timer
         self.game_over_message = ""
         self.game_over_color = (255, 255, 255)
+        self.victory_popup = None
 
-    def generate_solvable_message(self, length):
-        # Generate a message that is a linear combination of the player's key
-        # Improved logic: Ensure the "greedy strategy" (attacking the highest column) works.
-        # We do this by constructing the puzzle using the "Spike" of the key.
-        
-        player_key_vector = self.key_info['private_key'][length]['key']
+    def generate_solvable_message(self, length, key_info_source):
+        # Generate a message that is a linear combination of the PROVIDED key
+        key_vector = key_info_source['private_key'][length]['key']
         
         # Find the "Spike" (Max absolute value index) in the key
-        # This allows us to align the generator's moves with the player's optimal moves
-        spike_val = max(player_key_vector, key=abs)
-        spike_index = player_key_vector.index(spike_val)
+        spike_val = max(key_vector, key=abs)
+        spike_index = key_vector.index(spike_val)
         
         # Start with zero vector
         message_vector = [0] * length
         
-        # Balanced: Increase steps for higher levels to create "tall" boards
-        # Level 16 needs many steps because the key is "simple" (mostly zeros)
-        # So we need to stack it many times to fill the board.
+        # Balanced steps
         if length <= 10:
             steps = 4 
         elif length <= 12:
@@ -673,18 +722,18 @@ class GameScene(Scene):
         elif length <= 14:
             steps = 10
         else: # 16
-            steps = 15 # Much denser board for level 16
+            steps = 15 
         
         for _ in range(steps):
-            # Pick a random target column to raise
+            # Target a random column to "increase"
             target_col = random.randint(0, length - 1)
             
-            # Calculate rotation needed to bring the Spike to the Target Column
+            # Calculate rotation needed to bring spike to target_col
             # rotate(l, k) shift left by k. new = (old - k) % mod
             # target = (spike - k) % mod  =>  k = (spike - target) % mod
             rot = (spike_index - target_col) % length
             
-            rotated_key = rotate(length, player_key_vector, rot)
+            rotated_key = rotate(length, key_vector, rot)
             
             # Pick a random direction
             direction = 1 if random.random() > 0.5 else -1
@@ -721,7 +770,7 @@ class GameScene(Scene):
             
             # Check for auto-exit ONLY if lost (no popup)
             # If Win, we wait for user interaction via popup
-            if self.victory_popup is None and self.game_over_message == "ECHEC...":
+            if self.victory_popup is None and self.game_over_message == "DEFEAT...":
                  if current_time - self.game_over_timer > 5000:
                      self.manager.switch_to(MenuScene())
             return
@@ -735,7 +784,7 @@ class GameScene(Scene):
         if status == "WIN":
             self.game_over = True
             self.game_over_timer = current_time
-            self.game_over_message = "VICTOIRE !"
+            self.game_over_message = "VICTORY!"
             self.game_over_color = (0, 255, 0)
             
             # Trigger Popup
@@ -747,7 +796,7 @@ class GameScene(Scene):
         elif status == "LOSS":
             self.game_over = True
             self.game_over_timer = current_time
-            self.game_over_message = "ECHEC..."
+            self.game_over_message = "DEFEAT..."
             self.game_over_color = (255, 0, 0)
             
         # Check AI Status

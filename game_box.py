@@ -30,7 +30,7 @@ class GameBox:
             self.font = pygame.font.Font("cryptris/fonts/inconsolata-regular.ttf", 15)
             self.symbol_font = pygame.font.Font("cryptris/fonts/inconsolata-regular.ttf", 20)
         except:
-            print("Warning: Could not load custom fonts. Using system default.")
+            print("Warning: Unable to load custom fonts. Using default fonts.")
             self.font = pygame.font.SysFont("Consolas", 15)
             self.symbol_font = pygame.font.SysFont("Consolas", 20)
 
@@ -253,7 +253,11 @@ class GameBox:
             for i in range(self.current_length):
                 x = start_x + i * (self.col_width + self.space_width)
                 col_rect = pygame.Rect(x, self.rect.y + BORDER_HEIGHT, self.col_width, self.rect.height - 2 * BORDER_HEIGHT)
-                pygame.draw.rect(self.screen, self.colors['columnColor'], col_rect)
+                
+                # Draw with alpha
+                col_surf = pygame.Surface((col_rect.width, col_rect.height), pygame.SRCALPHA)
+                col_surf.fill(self.colors['columnColor'])
+                self.screen.blit(col_surf, col_rect)
 
             bottom_y = self.rect.bottom - BORDER_HEIGHT
             

@@ -4,9 +4,11 @@ Cryptris est un jeu educatif inspire de Tetris, concu pour illustrer les princip
 
 ## Concept du Jeu
 
-Le jeu oppose le Joueur a une IA Espion.
-- But du joueur : Vider son plateau en annulant les blocs positifs (bleus) et negatifs (cyans) pour maintenir la hauteur des colonnes a zero.
-- Principe mathematique : Chaque piece qui tombe est vecteur d'un reseau. L'objectif est de reduire la norme du vecteur global (la hauteur des colonnes) a zero. C'est une illustration ludique du probleme CVP (Closest Vector Problem).
+Cryptris est un logiciel pedagogique developpe pour initier aux concepts de la cryptographie asymetrique a base de reseaux. Contrairement a un jeu classique, le but n'est pas simplement de jouer, mais de visualiser le processus de dechiffrement.
+
+- Objectif Pedagogique : Comprendre comment une cle privee (le vecteur que vous controlez) permet de corriger une cle publique bruitee (le plateau rempli) pour retrouver le message original (le plateau vide).
+- Mecanique : L'IA agit comme celui qui chiffre le message en ajoutant du "bruit" aleatoire a l'aide de la cle publique. Le joueur agit comme le recepteur legitime qui utilise sa cle privee pour annuler ce bruit et retrouver le secret.
+- Mathematiques : C'est une representation visuelle directe du probleme du vecteur le plus proche (CVP) dans un reseau euclidien.
 
 ## Installation et Lancement
 

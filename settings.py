@@ -1,17 +1,17 @@
 import random
 
-# Cryptris configuration file
-# Ported from js/cryptris-settings.js
+# Fichier de configuration Cryptris
+# Porté depuis js/cryptris-settings.js
 
-# App URL
+# URL de l'Application
 APP_URL = "http://inriamecsci.github.io/cryptris"
 
-# Animation settings
+# Paramètres d'animation
 ANIMATE_TEXT_DELAY_BETWEEN_LETTERS = 20
 READING_DELAY = 4000
 
-# Board Symbols
-# 1 character is coded with 4 ternary symbols (3^4 = 81 possibilities)
+# Symboles de la Grille
+# 1 caractère est codé avec 4 symboles ternaires (3^4 = 81 possibilités)
 BOARD_SYMBOLS = [
     " ", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
     "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
@@ -21,9 +21,9 @@ BOARD_SYMBOLS = [
 
 SOCIAL_ENCRYPTED_MESSAGE_MAX_LENGTH = 140
 
-# Cryptography settings
+# Paramètres de Cryptographie
 
-# How many times should the private key be applied in order to generate a public key
+# Combien de fois la clé privée doit être appliquée pour générer une clé publique
 REPEAT_GEN_PUBLIC_KEY_LIST = {
     8: 3,
     10: 7,
@@ -32,7 +32,7 @@ REPEAT_GEN_PUBLIC_KEY_LIST = {
     16: 10
 }
 
-# How many times should the public key be applied to encrypt a message
+# Combien de fois la clé publique doit être appliquée pour chiffrer un message
 REPEAT_CHIFFRE_MSG_LIST = {
     8: 7,
     10: 8,
@@ -41,7 +41,7 @@ REPEAT_CHIFFRE_MSG_LIST = {
     16: 11
 }
 
-# AI settings
+# Paramètres IA
 AI_RANDOM_MOVES_BEFORE_STARTING_CRACKING_ALGORITHM = {
     8: 90,
     10: 250,
@@ -52,20 +52,20 @@ AI_RANDOM_MOVES_BEFORE_STARTING_CRACKING_ALGORITHM = {
 
 AI_SLOWDOWN = 1
 
-# Random helper
+# Utilitaire Aléatoire
 def shuffle_list(lst):
     l = list(lst)
     random.shuffle(l)
     return l
 
-# Board Lengths
+# Longueurs de Grille
 MIN_BOARD_LENGTH = 8
 MEDIUM_BOARD_LENGTH = 10
 MAX_BOARD_LENGTH = 12
 SUPER_MAX_BOARD_LENGTH = 14
 MEGA_MAX_BOARD_LENGTH = 16
 
-# Private keys
+# Clés Privées
 PREGENERATED_PRIVATE_KEYS = {
     # Clés Privées Prégénérées
     # Ces clés sont conçues pour assurer un équilibre entre esthétique (densité visuelle)
@@ -100,14 +100,14 @@ AUTHORIZED_LENGTH = [
     MEGA_MAX_BOARD_LENGTH
 ]
 
-# Column Types (from game.js logic, inferred)
+# Types de Colonnes (issus de la logique game.js)
 COLUMN_TYPE_1 = "type1" # > 0 (Blue in player mode)
 COLUMN_TYPE_2 = "type2" # < 0 (Dark Blue/Cyan in player mode)
 COLUMN_TYPE_3 = "empty"    # == 0
 
-# Visual Settings (Ported from global.js)
+# Paramètres Visuels (Portés depuis global.js)
 
-# Player Board Colors (Blue Theme)
+# Couleurs Grille Joueur (Thème Bleu)
 PLAYER_BOARD_COLORS = {
     'colorLeft': {'type1': (107, 141, 167), 'type2': (20, 115, 158), 'empty': None},
     'colorRight': {'type1': (53, 120, 157), 'type2': (1, 76, 131), 'empty': None},
@@ -116,7 +116,7 @@ PLAYER_BOARD_COLORS = {
     'columnColor': (0, 113, 187, 51), # rgba(0, 113, 187, 0.2)
 }
 
-# IA Board Colors (Purple Theme)
+# Couleurs Grille IA (Thème Violet)
 IA_BOARD_COLORS = {
     'colorLeft': {'type2': (103, 70, 116), 'type1': (116, 109, 116), 'empty': None},
     'colorRight': {'type2': (82, 34, 103), 'type1': (88, 83, 119), 'empty': None},

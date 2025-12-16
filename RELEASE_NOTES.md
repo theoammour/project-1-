@@ -73,3 +73,15 @@ Ce document retrace l'historique de développement du projet, réparti sur 4 sem
 *   Ajustements divers et polissage.
 *   [En cours] Ajout de la saisie de clé privée par l'utilisateur.
 *   [En cours] Intégration et affichage du nom de l'utilisateur.
+
+## Semaine 5 : Finalisation et Traduction (12 Déc - 16 Déc)
+
+**14 Décembre - Logique de Jeu Avancée**
+*   Séparation des Clés : Le joueur crée une clé personnalisée qui est attribuée à l'espion (IA), tandis que le joueur conserve une clé standard.
+*   Validation de la boucle de jeu : Création de clé -> Jeu -> Victoire/Défaite.
+
+**16 Décembre - Polissage Final (En cours)**
+*   Traduction intégrale du jeu en Anglais (Internationalisation).
+*   Correction de l'affichage de la jauge de sécurité lors de la création de clé.
+*   Mise à jour de la documentation.
+
