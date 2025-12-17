@@ -1,0 +1,76 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{color}
+
+\geometry{hmargin=2.5cm,vmargin=2.5cm}
+
+\title{\textbf{Rapport de Projet : Cryptris}}
+\author{Théo Ammour \\ ESIEA - Cryptographie Appliquée}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Ce rapport présente le développement d'une version Python du jeu éducatif \textit{Cryptris}, initialement conçu par l'Inria. L'objectif est de vulgariser les concepts de cryptographie asymétrique à base de réseaux euclidiens (Lattice-based cryptography) à travers une mécanique de jeu inspirée de Tetris. Le projet implémente un mode Arcade complet, incluant une gestion dynamique des clés et une intelligence artificielle adverse.
+\end{abstract}
+
+\tableofcontents
+
+\newpage
+
+\section{Introduction}
+La cryptographie post-quantique est un enjeu majeur de la sécurité informatique moderne. Les réseaux euclidiens offrent une alternative robuste aux systèmes RSA et ECC actuels. \textit{Cryptris} a été imaginé pour rendre ces concepts mathématiques complexes (vecteurs, réseaux, problème du vecteur le plus court) accessibles et ludiques. Notre projet consiste en une réimplémentation complète du jeu en Python avec la bibliothèque Pygame.
+
+\section{Fondements Mathématiques}
+\subsection{Réseaux Euclidiens}
+Un réseau est un ensemble de points régulièrement espacés dans l'espace. Dans le jeu, ces points sont représentés par des combinaisons de blocs.
+\subsection{Problème de la Somme de Vecteurs}
+Le cœur du gameplay repose sur l'addition de vecteurs. Chaque colonne du jeu représente une composante d'un vecteur. L'empilement de blocs correspond à une addition vectorielle, et l'annulation (blocs opposés) correspond à la soustraction.
+\subsection{Clé Publique et Clé Privée}
+Le joueur manipule une clé privée (un vecteur simple) pour tenter d'annuler une "clé publique" ou un message chiffré (un vecteur complexe et bruité) qui remplit l'écran.
+
+\section{Architecture Technique}
+Le projet est structuré autour de plusieurs modules Python :
+\begin{itemize}
+    \item \texttt{main.py} : Point d'entrée, gestionnaire de scènes (Menu, Jeu, Configuration).
+    \item \texttt{cryptris\_logic.py} : Fonctions mathématiques (calculs vectoriels, modulo, génération de clés).
+    \item \texttt{game\_box.py} : Gestion de l'affichage et de la physique du plateau de jeu.
+    \item \texttt{ai.py} : Intelligence Artificielle simulant un espion adverse.
+\end{itemize}
+
+\subsection{Méthodologie et Assistant Intelligent}
+Une particularité du développement de ce projet est l'utilisation d'une Intelligence Artificielle générative avancée (Agent de codage) comme assistant de programmation (Pair Programmer). Cet outil a été utilisé pour :
+\begin{itemize}
+    \item L'accélération de l'écriture du code ("boilerplate" et structures répétitives).
+    \item L'analyse et la correction de bugs complexes (boucles infinies, logique vectorielle).
+    \item La traduction et l'internationalisation rapide de l'interface.
+    \item La rédaction et la structuration de la documentation technique (Rapport, README).
+\end{itemize}
+
+\section{Fonctionnalités Implémentées}
+\subsection{Modes de Jeu}
+\begin{itemize}
+    \item \textbf{Mode Solo (Arcade)} : Le joueur doit nettoyer son écran le plus vite possible.
+    \item \textbf{Mode Espion} : Le joueur affronte une IA. Le joueur utilise une clé standard tandis que l'IA utilise une clé personnalisée créée par le joueur.
+\end{itemize}
+
+\subsection{Interface Utilisateur}
+L'interface a été soignée pour offrir une expérience fluide :
+\begin{itemize}
+    \item Menus de configuration (Nom, Difficulté).
+    \item Feedback visuel (Jauges de sécurité, timers, popups de victoire).
+    \item Traduction intégrale en Anglais pour une portée internationale.
+\end{itemize}
+
+\section{Conclusion}
+Ce projet a permis de mettre en pratique des concepts de génie logiciel (architecture MVC, POO) tout en approfondissant la compréhension des mécanismes cryptographiques sous-jacents aux réseaux euclidiens. Le résultat est un jeu fonctionnel, esthétique et éducatif.
+
+\end{document}

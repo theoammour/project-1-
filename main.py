@@ -65,8 +65,9 @@ class MenuScene(Scene):
         self.font_large = pygame.font.SysFont("Arial", 48, bold=True)
         self.font_menu = pygame.font.SysFont("Arial", 36)
         
-        self.menu_items = ["ARCADE", "QUIT"]
+        self.menu_items = ["ARCADE", "DOCUMENTATION", "A PROPOS", "QUITTER"]
         self.selected_index = 0
+        self.menu_rects = [] # Initialize here to prevent AttributeError in handle_event
         
         # Load Assets
         self.bg_image = None
@@ -141,6 +142,8 @@ class MenuScene(Scene):
         menu_start_y = 450
         item_spacing = 60
         
+        self.menu_rects = [] # Store rects for mouse interaction
+        
         for i, item in enumerate(self.menu_items):
             is_selected = (i == self.selected_index)
             
@@ -163,6 +166,11 @@ class MenuScene(Scene):
                 shadow = self.font_menu.render(text_str, True, (0, 50, 50))
                 screen.blit(shadow, (x+2, y+2))
             
+            
+            # Store rect for collision
+            item_rect = text.get_rect(topleft=(x, y))
+            self.menu_rects.append((item_rect, i))
+
             screen.blit(text, (x, y))
 
     def handle_event(self, event):
@@ -173,15 +181,349 @@ class MenuScene(Scene):
                 self.selected_index = (self.selected_index + 1) % len(self.menu_items)
             elif event.key == pygame.K_RETURN:
                 self.trigger_menu_action()
+        
+        # Mouse support
+        elif event.type == pygame.MOUSEMOTION:
+            for rect, index in self.menu_rects:
+                if rect.collidepoint(event.pos):
+                    self.selected_index = index
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                for rect, index in self.menu_rects:
+                    if rect.collidepoint(event.pos):
+                        self.selected_index = index
+                        self.trigger_menu_action()
 
     def trigger_menu_action(self):
         selection = self.menu_items[self.selected_index]
         if selection == "ARCADE":
              # Go to Name/Difficulty Config
              self.manager.switch_to(ConfigScene())
-        elif selection == "QUITTER":
+        elif selection == "DOCUMENTATION":
+             self.manager.switch_to(DocumentationScene())
+        elif selection == "A PROPOS":
+             self.manager.switch_to(AboutScene())
+        elif selection == "QUIT" or selection == "QUITTER":
             pygame.quit()
             sys.exit()
+
+import webbrowser
+
+class DocumentationScene(Scene):
+    def __init__(self):
+        super().__init__()
+        self.font_title = pygame.font.SysFont("Arial", 26, bold=True) # Increased from 20
+        self.font_desc = pygame.font.SysFont("Arial", 18) # Increased from 14
+        self.font_url = pygame.font.SysFont("Arial", 16) # Increased from 12 (now readable)
+        
+        self.resources = [
+            {
+                "title": "PGP: AN EMAIL ENCRYPTION SOFTWARE",
+                "desc": "Why and how to use openPGP?",
+                "url": "https://theprivacyguide.org/tutorials/pgp.html"
+            },
+            {
+                "title": "SIGNAL",
+                "desc": "An encrypted chat application",
+                "url": "https://signal.org/"
+            },
+            {
+                "title": "PUBLIC-KEY CRYPTOGRAPHY (PKC)",
+                "desc": "Definition and explanation of Public-key Cryptography on Wikipedia",
+                "url": "https://en.wikipedia.org/wiki/Public-key_cryptography"
+            },
+            {
+                "title": "PUBLIC KEY INFRASTRUCTURE",
+                "desc": "Definition of Public-key infrastructure on Wikipedia",
+                "url": "https://en.wikipedia.org/wiki/Public_key_infrastructure"
+            },
+            {
+                "title": "CRYPTOGRAPHY",
+                "desc": "Definition of Cryptography on Wikipedia",
+                "url": "https://en.wikipedia.org/wiki/Cryptography"
+            },
+            {
+                "title": "HISTOIRE DE LA CRYPTOGRAPHIE",
+                "desc": "L'histoire de la cryptographie sur Wikipédia",
+                "url": "https://fr.wikipedia.org/wiki/Histoire_de_la_cryptographie"
+            }
+        ]
+        
+        self.click_rects = [] # Store rects for click detection
+        self.bg_image = None
+        
+        # Try loading background
+        try:
+             bg_path = os.path.join("cryptris", "img", "bg-circuits.png")
+             self.bg_image = pygame.image.load(bg_path).convert()
+             self.bg_image = pygame.transform.scale(self.bg_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
+        except:
+            pass
+
+    def draw(self, screen):
+         # Background
+        if self.bg_image:
+            screen.blit(self.bg_image, (0, 0))
+        else:
+            screen.fill(BACKGROUND_COLOR)
+            
+        # Main Title
+        main_title = pygame.font.SysFont("Arial", 54, bold=True).render("CRYPTRIS", True, (0, 255, 255))
+        title_rect = main_title.get_rect(center=(SCREEN_WIDTH//2, 50)) # Moved up from 60
+        
+        # Shadow
+        shadow = pygame.font.SysFont("Arial", 54, bold=True).render("CRYPTRIS", True, (0, 100, 100))
+        screen.blit(shadow, (title_rect.x+3, title_rect.y+3))
+        screen.blit(main_title, title_rect)
+        
+        sub_title = pygame.font.SysFont("Arial", 24).render("RESSOURCES EXTERNES", True, (0, 180, 200))
+        screen.blit(sub_title, (SCREEN_WIDTH//2 - sub_title.get_width()//2, 90)) # Moved up from 110
+
+        # Draw List
+        start_y = 125 # Adjusted slightly to ensure clearance
+        item_height = 125 # Adjusted spacing
+        
+        # Need to re-init click rects list on each draw if layout changes, or just once. 
+        # Doing it here handles resize naturally if we supported it.
+        self.click_rects = [] 
+        
+        for i, res in enumerate(self.resources):
+            y = start_y + i * item_height
+            
+            # Container Rect (for click detection)
+            container_w = 800 # Wider container
+            container_h = 115 # Compact container height
+            container_x = (SCREEN_WIDTH - container_w) // 2
+            
+            # Store rect
+            rect = pygame.Rect(container_x, y, container_w, container_h)
+            self.click_rects.append((rect, res["url"]))
+            
+            # Draw Container Background (faint)
+            s = pygame.Surface((container_w, container_h), pygame.SRCALPHA)
+            pygame.draw.rect(s, (0, 20, 40, 150), s.get_rect(), border_radius=5)
+            screen.blit(s, rect)
+            
+            # Border (Cyan thin) for the main container
+            pygame.draw.rect(screen, (0, 100, 150), rect, 1, border_radius=5)
+            
+            # 1. Title (Boxed style from screenshot)
+            title_surf = self.font_title.render(res["title"], True, (0, 255, 255))
+            
+            # Title Box logic
+            title_padding_x = 20
+            title_padding_y = 5
+            title_box_w = title_surf.get_width() + title_padding_x * 2
+            title_box_h = title_surf.get_height() + title_padding_y * 2
+            
+            title_box_rect = pygame.Rect(0, 0, title_box_w, title_box_h)
+            title_box_rect.centerx = rect.centerx
+            title_box_rect.top = rect.top + 15
+            
+            # Draw Title Box Background (Darker opacity)
+            # s_title = pygame.Surface((title_box_w, title_box_h), pygame.SRCALPHA)
+            # pygame.draw.rect(s_title, (0, 0, 0, 200), s_title.get_rect())
+            # screen.blit(s_title, title_box_rect)
+            
+            # Draw Title Box Border (Cyan)
+            pygame.draw.rect(screen, (0, 200, 255), title_box_rect, 2)
+            
+            # Draw Title Text centered in its box
+            title_text_rect = title_surf.get_rect(center=title_box_rect.center)
+            screen.blit(title_surf, title_text_rect)
+            
+            # 2. Desc
+            desc_surf = self.font_desc.render(res["desc"], True, (220, 220, 220)) # Brighter white
+            screen.blit(desc_surf, (rect.centerx - desc_surf.get_width()//2, title_box_rect.bottom + 10))
+            
+            # 3. URL
+            url_surf = self.font_url.render(res["url"], True, (0, 255, 255)) # Cyan link
+            screen.blit(url_surf, (rect.centerx - url_surf.get_width()//2, title_box_rect.bottom + 35))
+
+        # Back Instruction
+        # Back Button
+        mx, my = pygame.mouse.get_pos()
+        self.back_rect = pygame.Rect(20, 20, 120, 40)
+        
+        is_hover = self.back_rect.collidepoint(mx, my)
+        color_bg = (0, 50, 50) if is_hover else (0, 20, 20)
+        color_border = (0, 255, 255) if is_hover else (0, 100, 100)
+        
+        pygame.draw.rect(screen, color_bg, self.back_rect, border_radius=5)
+        pygame.draw.rect(screen, color_border, self.back_rect, 2, border_radius=5)
+        
+        text_surf = self.font_desc.render("RETOUR", True, (0, 255, 255))
+        text_rect = text_surf.get_rect(center=self.back_rect.center)
+        screen.blit(text_surf, text_rect)
+
+    def handle_event(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                self.manager.switch_to(MenuScene())
+        
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1: # Left Click
+                mouse_pos = event.pos
+                for rect, url in self.click_rects:
+                    if rect.collidepoint(mouse_pos):
+                        try:
+                            webbrowser.open(url)
+                        except:
+                            print(f"Could not open {url}")
+
+            # Check Back Button
+            if hasattr(self, 'back_rect') and self.back_rect.collidepoint(event.pos):
+                self.manager.switch_to(MenuScene())
+
+class AboutScene(Scene):
+    def __init__(self):
+        super().__init__()
+        self.font_title = pygame.font.SysFont("Arial", 40, bold=True)
+        self.font_text = pygame.font.SysFont("Arial", 20)
+        self.font_bold = pygame.font.SysFont("Arial", 20, bold=True)
+        self.font_small = pygame.font.SysFont("Arial", 16)
+        
+        self.bg_image = None
+        self.logo_inria = None
+        self.logo_digital = None
+        self.logo_capmaths = None # Assuming we might want this if available, otherwise text
+        
+        try:
+             # Reuse background
+             bg_path = os.path.join("cryptris", "img", "bg-circuits.png")
+             self.bg_image = pygame.image.load(bg_path).convert()
+             self.bg_image = pygame.transform.scale(self.bg_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
+             
+             # Reuse Logos
+             self.logo_inria = pygame.image.load(os.path.join("cryptris", "img", "logo-inria-medium.png")).convert_alpha()
+             self.logo_digital = pygame.image.load(os.path.join("cryptris", "img", "logo-digital-cuisine-medium.png")).convert_alpha()
+        except:
+            pass
+
+    def draw(self, screen):
+         # Background
+        if self.bg_image:
+            screen.blit(self.bg_image, (0, 0))
+        else:
+            screen.fill(BACKGROUND_COLOR)
+            
+        # 1. Big Title "CRYPTRIS" (Reused code for consistency)
+        main_title = pygame.font.SysFont("Arial", 80, bold=True).render("CRYPTRIS", True, (0, 255, 255))
+        title_rect = main_title.get_rect(center=(SCREEN_WIDTH//2, 100))
+        
+        # Shadow/Glitch effect
+        shadow = pygame.font.SysFont("Arial", 80, bold=True).render("CRYPTRIS", True, (200, 200, 200))
+        screen.blit(shadow, (title_rect.x+4, title_rect.y+4))
+        screen.blit(main_title, title_rect)
+        
+        # 2. Text Content
+        # We will render line by line manually for key highlights
+        start_y = 220 # Moved up slightly
+        spacing = 40
+        
+        # Helper to draw centered text with colored keywords
+        def draw_centered_text(y, parts):
+            total_w = sum(font.render(text, True, color).get_width() for text, color, font in parts)
+            curr_x = (SCREEN_WIDTH - total_w) // 2
+            
+            for text, color, font in parts:
+                surf = font.render(text, True, color)
+                screen.blit(surf, (curr_x, y))
+                curr_x += surf.get_width()
+        
+        # Line 0: Author Credit
+        draw_centered_text(start_y, [
+            ("Cette version est une réécriture complète en ", (200, 200, 200), self.font_text),
+            ("Python", (0, 255, 255), self.font_bold),
+            (" réalisée par ", (200, 200, 200), self.font_text)
+        ])
+        draw_centered_text(start_y + 30, [
+             ("Théo Ammour", (0, 255, 255), self.font_bold),
+             (" pour le projet de ", (200, 200, 200), self.font_text),
+             ("Cryptographie Appliquée", (0, 255, 255), self.font_bold),
+             (" à l'", (200, 200, 200), self.font_text),
+             ("ESIEA", (0, 255, 255), self.font_bold),
+             (".", (200, 200, 200), self.font_text)
+        ])
+
+        # Line 1: Inspiration
+        y_p1 = start_y + 80
+        draw_centered_text(y_p1, [
+            ("Elle s'inspire du jeu original Cryptris créé par ", (200, 200, 200), self.font_text),
+            ("Inria", (0, 255, 255), self.font_bold),
+            (" et ", (200, 200, 200), self.font_text),
+            ("Digital Cuisine", (0, 255, 255), self.font_bold),
+            (",", (200, 200, 200), self.font_text)
+        ])
+        
+        draw_centered_text(y_p1 + 30, [
+            ("avec le soutien de ", (200, 200, 200), self.font_text),
+            ("Cap'Maths", (0, 255, 255), self.font_bold),
+            (".", (200, 200, 200), self.font_text)
+        ])
+        
+        # Paragraph 2
+        y_p2 = y_p1 + 80
+        draw_centered_text(y_p2, [
+            ("L'objectif est d'illustrer la différence fondamentale entre clé publique et clé privée.", (220, 220, 220), self.font_text)
+        ])
+        draw_centered_text(y_p2 + 30, [
+            ("Le joueur doit construire sa propre clé secrète pour décrypter les messages,", (220, 220, 220), self.font_text)
+        ])
+        draw_centered_text(y_p2 + 60, [
+            ("tout en affrontant une IA qui tente de casser le code par force brute.", (220, 220, 220), self.font_text)
+        ])
+        
+        # Paragraph 3
+        y_p3 = y_p2 + 130
+        draw_centered_text(y_p3, [
+            ("Au fur et à mesure, votre clé se renforce. Bien qu'elle reste simple à manipuler", (220, 220, 220), self.font_text)
+        ])
+        draw_centered_text(y_p3 + 30, [
+            ("pour vous, elle devient un véritable obstacle pour l'ordinateur.", (220, 220, 220), self.font_text)
+        ])
+        draw_centered_text(y_p3 + 60, [
+             ("C'est là toute la puissance de la sécurité asymétrique !", (220, 220, 220), self.font_text)
+        ])
+        
+        # Logos Footer
+        footer_y = SCREEN_HEIGHT - 150
+        spacing_logos = 60
+        
+        if self.logo_inria and self.logo_digital:
+            w_inria = self.logo_inria.get_width()
+            w_digital = self.logo_digital.get_width()
+            total_w = w_inria + spacing_logos + w_digital
+            
+            start_x = (SCREEN_WIDTH - total_w) // 2
+            
+            screen.blit(self.logo_inria, (start_x, footer_y))
+            screen.blit(self.logo_digital, (start_x + w_inria + spacing_logos, footer_y))
+            
+        # Back Instruction
+        # Back Button
+        mx, my = pygame.mouse.get_pos()
+        self.back_rect = pygame.Rect(20, 20, 100, 35) # Slightly smaller/different
+        
+        is_hover = self.back_rect.collidepoint(mx, my)
+        color_bg = (0, 50, 50) if is_hover else (0, 20, 20)
+        color_border = (0, 255, 255) if is_hover else (0, 100, 100)
+        
+        pygame.draw.rect(screen, color_bg, self.back_rect, border_radius=5)
+        pygame.draw.rect(screen, color_border, self.back_rect, 2, border_radius=5)
+        
+        text_surf = self.font_small.render("RETOUR", True, (0, 255, 255))
+        text_rect = text_surf.get_rect(center=self.back_rect.center)
+        screen.blit(text_surf, text_rect)
+
+    def handle_event(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                self.manager.switch_to(MenuScene())
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                 if hasattr(self, 'back_rect') and self.back_rect.collidepoint(event.pos):
+                     self.manager.switch_to(MenuScene())
 
 class KeyCreationScene(Scene):
     def __init__(self, player_name="Player"):
@@ -300,15 +642,15 @@ class KeyCreationScene(Scene):
         s = score(pk)
         
         if s < 0.5:
-            label = "WEAK"
+            label = "FAIBLE"
             color = (255, 50, 50)
             level_pct = min(1.0, s / 0.5) * 0.33
         elif s < 1.5:
-            label = "MEDIUM"
+            label = "MOYEN"
             color = (255, 255, 0)
             level_pct = 0.33 + min(1.0, (s - 0.5) / 1.0) * 0.33
         else:
-            label = "STRONG"
+            label = "FORT"
             color = (0, 255, 0)
             level_pct = 0.66 + min(1.0, (s - 1.5) / 1.0) * 0.34
             
@@ -324,7 +666,7 @@ class KeyCreationScene(Scene):
             
         # Draw Title
         title_font = pygame.font.SysFont("Arial", 40, bold=True)
-        title = title_font.render("PRIVATE KEY CREATION", True, (0, 255, 255))
+        title = title_font.render("CREATION DE CLE PRIVEE", True, (0, 255, 255))
         screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, 30))
 
         # --- Draw GameBox (Grid) ---
@@ -336,19 +678,19 @@ class KeyCreationScene(Scene):
         panel_y = self.grid_y
         
         # 1. Player Info & Timer
-        lbl_player = self.font.render(f"Player : {self.player_name}", True, (255, 255, 255))
+        lbl_player = self.font.render(f"Joueur : {self.player_name}", True, (255, 255, 255))
         screen.blit(lbl_player, (panel_x, panel_y))
         
         elapsed = (pygame.time.get_ticks() - self.timer_start) // 1000
         m, s = divmod(elapsed, 60)
-        lbl_timer = self.font.render(f"Time : {m:02}:{s:02}", True, (0, 255, 0))
+        lbl_timer = self.font.render(f"Temps : {m:02}:{s:02}", True, (0, 255, 0))
         screen.blit(lbl_timer, (panel_x, panel_y + 40))
         
         # 2. Security Level Visual
         str_lbl, str_color, str_pct = self.get_strength_info()
         
         sec_y = panel_y + 120
-        lbl_sec = self.font.render("SECURITY LEVEL", True, (0, 200, 255))
+        lbl_sec = self.font.render("NIVEAU DE SECURITE", True, (0, 200, 255))
         screen.blit(lbl_sec, (panel_x, sec_y))
         
         # Bar
@@ -365,14 +707,31 @@ class KeyCreationScene(Scene):
         ctrl_y = sec_y + 150
         ctrl_text_y = ctrl_y + 80
         lines = [
-            "LEFT/RIGHT : Move",
-            "SPACE : Invert Color",
-            "DOWN : Drop",
-            "ENTER : VALIDATE KEY"
+            "GAUCHE/DROITE : Bouger",
+            "ESPACE : Inverser Couleur",
+            "BAS : Lâcher"
         ]
         for i, line in enumerate(lines):
             t = self.small_font.render(line, True, (180, 180, 180))
             screen.blit(t, (panel_x, ctrl_text_y + i * 25))
+            
+        # Validate Button
+        btn_y = ctrl_text_y + len(lines) * 25 + 20
+        self.btn_validate_rect = pygame.Rect(panel_x, btn_y, 200, 50)
+        
+        mx, my = pygame.mouse.get_pos()
+        is_hover = self.btn_validate_rect.collidepoint(mx, my)
+        
+        # Button Colors
+        c_bg = (0, 100, 0) if is_hover else (0, 50, 0)
+        c_border = (0, 255, 0) if is_hover else (0, 150, 0)
+        
+        pygame.draw.rect(screen, c_bg, self.btn_validate_rect, border_radius=8)
+        pygame.draw.rect(screen, c_border, self.btn_validate_rect, 2, border_radius=8)
+        
+        v_text = self.font.render("VALIDER", True, (255, 255, 255))
+        v_rect = v_text.get_rect(center=self.btn_validate_rect.center)
+        screen.blit(v_text, v_rect)
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
@@ -384,6 +743,12 @@ class KeyCreationScene(Scene):
             else:
                 # Delegate controls to GameBox (Left, Right, Down, Space)
                 self.game_box.handle_input(event)
+                
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                # Check Validate button
+                 if hasattr(self, 'btn_validate_rect') and self.btn_validate_rect.collidepoint(event.pos):
+                     self.manager.switch_to(GameScene(self.length, player_name=self.player_name, custom_key=self.key_vector))
 
 class ConfigScene(Scene):
     def __init__(self):
@@ -391,7 +756,7 @@ class ConfigScene(Scene):
         self.font = pygame.font.SysFont("Arial", 48)
         self.small_font = pygame.font.SysFont("Arial", 24)
         self.selected_length_index = 0
-        self.lengths = ["CREATE KEY"] + AUTHORIZED_LENGTH
+        self.lengths = ["CREER CLE"] + AUTHORIZED_LENGTH
         self.player_name = ""
         self.state = "NAME_INPUT" # States: "NAME_INPUT", "DIFFICULTY_SELECT"
         
@@ -416,27 +781,29 @@ class ConfigScene(Scene):
         
         if self.state == "NAME_INPUT":
             # Name Input UI
-            name_label = self.small_font.render("Enter your name :", True, (200, 200, 200))
+            name_label = self.small_font.render("Entrez votre nom :", True, (200, 200, 200))
             screen.blit(name_label, (SCREEN_WIDTH//2 - name_label.get_width()//2, 250))
             
             name_surface = self.font.render(self.player_name + "_", True, (0, 255, 255))
             screen.blit(name_surface, (SCREEN_WIDTH//2 - name_surface.get_width()//2, 290))
             
-            instr = self.small_font.render("Press ENTER to validate", True, (150, 150, 150))
+            instr = self.small_font.render("Appuyez sur ENTRÉE pour valider", True, (150, 150, 150))
             screen.blit(instr, (SCREEN_WIDTH//2 - instr.get_width()//2, 400))
             
         elif self.state == "DIFFICULTY_SELECT":
             # Greeting
-            greet = self.small_font.render(f"Hello {self.player_name} !", True, (0, 255, 255))
+            greet = self.small_font.render(f"Bonjour {self.player_name} !", True, (0, 255, 255))
             screen.blit(greet, (SCREEN_WIDTH//2 - greet.get_width()//2, 150))
 
             # Difficulty Selection
-            sel_text = self.small_font.render("Select Difficulty (Columns) :", True, (200, 200, 200))
+            sel_text = self.small_font.render("Sélectionnez la difficulté (Colonnes) :", True, (200, 200, 200))
             screen.blit(sel_text, (SCREEN_WIDTH//2 - sel_text.get_width()//2, 220))
             
             # Draw options VERTICALLY
             start_y = 300
             spacing_y = 60
+            
+            self.length_rects = []
             
             for i, length in enumerate(self.lengths):
                 is_selected = (i == self.selected_length_index)
@@ -452,12 +819,17 @@ class ConfigScene(Scene):
                 x = SCREEN_WIDTH//2 - opt_text.get_width()//2
                 y = start_y + i * spacing_y
                 screen.blit(opt_text, (x, y))
+                
+                # Store rect (add some padding for easier clicking)
+                r = opt_text.get_rect(topleft=(x,y))
+                r.inflate_ip(40, 10)
+                self.length_rects.append((r, i))
 
             # Instructions
-            text = self.small_font.render("UP/DOWN to Choose, ENTER to Play", True, (200, 200, 200))
+            text = self.small_font.render("HAUT/BAS pour Choisir, ENTRÉE pour Jouer/Créer", True, (200, 200, 200))
             screen.blit(text, (SCREEN_WIDTH//2 - text.get_width()//2, 750))
             
-            back = self.small_font.render("ESCAPE to go back", True, (100, 100, 100))
+            back = self.small_font.render("ECHAP pour revenir", True, (100, 100, 100))
             screen.blit(back, (SCREEN_WIDTH//2 - back.get_width()//2, 800))
 
     def handle_event(self, event):
@@ -483,12 +855,33 @@ class ConfigScene(Scene):
                     self.selected_length_index = (self.selected_length_index + 1) % len(self.lengths)
                 elif event.key == pygame.K_RETURN:
                     selected = self.lengths[self.selected_length_index]
-                    if selected == "CREATE KEY":
+                    if selected == "CREER CLE":
                         self.manager.switch_to(KeyCreationScene(self.player_name))
                     else:
                         self.manager.switch_to(GameScene(selected, self.player_name))
                 elif event.key == pygame.K_ESCAPE:
                     self.state = "NAME_INPUT"
+                    
+            # Mouse support for Difficulty Select
+        if self.state == "DIFFICULTY_SELECT":
+            if event.type == pygame.MOUSEMOTION:
+                # Only checking inside the rects we stored
+                if hasattr(self, 'length_rects'):
+                    for rect, index in self.length_rects:
+                        if rect.collidepoint(event.pos):
+                            self.selected_length_index = index
+                            
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1 and hasattr(self, 'length_rects'):
+                        for rect, index in self.length_rects:
+                            if rect.collidepoint(event.pos):
+                                self.selected_length_index = index
+                                # Trigger same logic as ENTER
+                                selected = self.lengths[self.selected_length_index]
+                                if selected == "CREER CLE":
+                                    self.manager.switch_to(KeyCreationScene(self.player_name))
+                                else:
+                                    self.manager.switch_to(GameScene(selected, self.player_name))
 
 class VictoryPopup:
     def __init__(self, screen_width, screen_height, decrypted_code, on_menu, on_next):
@@ -545,7 +938,7 @@ class VictoryPopup:
         pygame.draw.rect(screen, (255, 255, 255), rect, 2)
         
         # Titre
-        title_surf = self.title_font.render("CHALLENGE UNLOCKED", True, (255, 255, 255))
+        title_surf = self.title_font.render("DEFI DEVERROUILLE", True, (255, 255, 255))
         screen.blit(title_surf, (self.x + 20, self.y + 15))
         
         # Contenu - Icône Cadenas (Gauche)
@@ -560,7 +953,7 @@ class VictoryPopup:
         # Contenu - Message (Droite)
         msg_x = self.x + 200
         msg_y = self.y + 120
-        label = self.msg_font.render("DECRYPTED MESSAGE :", True, (100, 100, 100))
+        label = self.msg_font.render("MESSAGE DECHIFFRE :", True, (100, 100, 100))
         screen.blit(label, (msg_x, msg_y))
         
         # Boîte de Code
@@ -575,13 +968,13 @@ class VictoryPopup:
         # Menu Button
         c_menu = self.btn_hover_color if self.rect_menu.collidepoint(mx, my) else self.btn_menu_color
         pygame.draw.rect(screen, c_menu, self.rect_menu)
-        txt_menu = self.btn_font.render("MAIN MENU", True, (255, 255, 255))
+        txt_menu = self.btn_font.render("MENU PRINCIPAL", True, (255, 255, 255))
         screen.blit(txt_menu, (self.rect_menu.centerx - txt_menu.get_width()//2, self.rect_menu.centery - txt_menu.get_height()//2))
         
         # Next Button
         c_next = self.btn_hover_color if self.rect_next.collidepoint(mx, my) else self.btn_next_color
         pygame.draw.rect(screen, c_next, self.rect_next)
-        txt_next = self.btn_font.render("NEXT CHALLENGE", True, (255, 255, 255))
+        txt_next = self.btn_font.render("PROCHAIN DEFI", True, (255, 255, 255))
         screen.blit(txt_next, (self.rect_next.centerx - txt_next.get_width()//2, self.rect_next.centery - txt_next.get_height()//2))
 
     def handle_event(self, event):
@@ -784,7 +1177,7 @@ class GameScene(Scene):
         if status == "WIN":
             self.game_over = True
             self.game_over_timer = current_time
-            self.game_over_message = "VICTORY!"
+            self.game_over_message = "VICTOIRE !"
             self.game_over_color = (0, 255, 0)
             
             # Trigger Popup
@@ -796,7 +1189,7 @@ class GameScene(Scene):
         elif status == "LOSS":
             self.game_over = True
             self.game_over_timer = current_time
-            self.game_over_message = "DEFEAT..."
+            self.game_over_message = "DEFAITE..."
             self.game_over_color = (255, 0, 0)
             
         # Check AI Status
@@ -866,6 +1259,8 @@ class GameScene(Scene):
         self.player_box.draw()
         self.ai_box.draw()
 
+        self.draw_key_indicators(screen)
+
         # Draw Popup LAST to ensure it is on top
         if self.victory_popup:
             self.victory_popup.draw(screen)
@@ -898,23 +1293,52 @@ class GameScene(Scene):
         rect.centerx = center_x
         rect.centery = y
         
-        # Draw Box Background (Dark with border)
-        pygame.draw.rect(screen, (10, 10, 10), rect)
+        # Glow (Background)
+        s = pygame.Surface((box_width, box_height), pygame.SRCALPHA)
+        pygame.draw.rect(s, (0, 0, 0, 150), s.get_rect(), border_radius=10)
+        screen.blit(s, rect)
         
-        # Border Color
-        border_color = (0, 255, 255) if is_player else (255, 0, 255) # Cyan vs Magenta
-        pygame.draw.rect(screen, border_color, rect, 2)
+        # Border
+        color = (0, 255, 255) if is_player else (255, 0, 255)
+        pygame.draw.rect(screen, color, rect, 2, border_radius=10)
         
-        # Draw Text
-        screen.blit(text, (rect.centerx - text.get_width()//2, rect.centery - text.get_height()//2))
+        # Text
+        text_rect = text.get_rect(center=rect.center)
+        screen.blit(text, text_rect)
         
-        # Decorative dots like in the screenshot
-        pygame.draw.circle(screen, border_color, (rect.left - 10, rect.centery), 4)
-        pygame.draw.circle(screen, border_color, (rect.right + 10, rect.centery), 4)
+        # Decorative dots
+        pygame.draw.circle(screen, color, (rect.left - 10, rect.centery), 4)
+        pygame.draw.circle(screen, color, (rect.right + 10, rect.centery), 4)
 
-        # Decorative dots like in the screenshot
-        pygame.draw.circle(screen, border_color, (rect.left - 10, rect.centery), 4)
-        pygame.draw.circle(screen, border_color, (rect.right + 10, rect.centery), 4)
+    def draw_key_indicators(self, screen):
+        font = pygame.font.SysFont("Arial", 16, bold=True)
+        
+        # Player Indicator (PRIV) - Cyan
+        indicator_y = self.player_box.rect.top - 25
+        priv_text = font.render("CLE PRIV", True, (0, 255, 255))
+        
+        icon_x = self.player_box.rect.right - 20
+        text_x = icon_x - priv_text.get_width() - 10
+        
+        screen.blit(priv_text, (text_x, indicator_y))
+        
+        # Icon (Player)
+        pygame.draw.circle(screen, (0, 255, 255), (icon_x, indicator_y + 8), 6, 2)
+        pygame.draw.line(screen, (0, 255, 255), (icon_x + 6, indicator_y + 8), (icon_x + 14, indicator_y + 8), 2)
+        pygame.draw.line(screen, (0, 255, 255), (icon_x + 14, indicator_y + 8), (icon_x + 14, indicator_y + 12), 2)
+
+        # AI Indicator (PUB) - Pink
+        pub_text = font.render("CLE PUB", True, (255, 0, 255))
+        
+        icon_x_ai = self.ai_box.rect.left + 20
+        text_x_ai = icon_x_ai + 20
+        
+        # Icon (AI)
+        pygame.draw.circle(screen, (255, 0, 255), (icon_x_ai, indicator_y + 8), 6, 2)
+        pygame.draw.line(screen, (255, 0, 255), (icon_x_ai + 6, indicator_y + 8), (icon_x_ai + 14, indicator_y + 8), 2)
+        pygame.draw.line(screen, (255, 0, 255), (icon_x_ai + 14, indicator_y + 8), (icon_x_ai + 14, indicator_y + 12), 2)
+        
+        screen.blit(pub_text, (text_x_ai, indicator_y))
 
         if self.game_over and not self.victory_popup:
             # Check delay for overlay
