@@ -52,7 +52,15 @@ Cette version apporte des correctifs majeurs pour l'equilibrage et la jouabilite
 
 ### Interface
 - Popup de Victoire : Nouvelle fenetre de victoire "Challenge Solved" interactive.
-- Traduction : Interface et code entierement traduits en francais.
+- Traduction : Interface et code traduits en francais, anglais et neerlandais.
+- Identité Visuelle : Intégration du logo ESIEA.
+
+## Notes de Version (v1.6)
+
+### UI et Internationalisation
+- **Langues** : Ajout du support multi-langues (FR, EN, NL) avec selection par drapeaux.
+- **Navigation** : Correction de la navigation a la souris dans les menus.
+- **Graphismes** : Mise a jour des logos et assets graphiques.
 
 ### Auteur
-Ammour Theo (ammour@et.esiea.fr)
+Amour Theo (ammour@et.esiea.fr)

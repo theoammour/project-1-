@@ -70,8 +70,12 @@ L'interface a été soignée pour offrir une expérience fluide :
 \begin{itemize}
     \item Menus de configuration (Nom, Difficulté).
     \item Feedback visuel (Jauges de sécurité, timers, popups de victoire).
-    \item Traduction intégrale en Anglais pour une portée internationale.
+    \item \textbf{Internationalisation} : Système de traduction dynamique supportant le Français, l'Anglais et le Néerlandais, accessible via une interface intuitive à base de drapeaux.
+    \item \textbf{Navigation} : Support complet clavier et souris pour une meilleure accessibilité.
 \end{itemize}
+
+\subsection{Gestion des Assets et Robustesse}
+Le jeu intègre désormais un système de chargement d'assets robuste ("Graceful Degradation"). Si des ressources graphiques (images, logos) sont manquantes ou corrompues, le jeu utilise automatiquement des éléments de substitution générés procéduralement (rectangles de couleur, textes) pour garantir que l'application reste fonctionnelle en toutes circonstances.
 
 \section{Conclusion}
 Ce projet a permis de mettre en pratique des concepts de génie logiciel (architecture MVC, POO) tout en approfondissant la compréhension des mécanismes cryptographiques sous-jacents aux réseaux euclidiens. Le résultat est un jeu fonctionnel, esthétique et éducatif.

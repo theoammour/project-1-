@@ -17,6 +17,71 @@ SCREEN_HEIGHT = 900
 FPS = 60
 BACKGROUND_COLOR = (20, 20, 20)
 
+class LanguageManager:
+    def __init__(self):
+        self.current_language = "FR" # Default
+        self.translations = {
+            "FR": {
+                "ARCADE": "ARCADE",
+                "DOCUMENTATION": "DOCUMENTATION",
+                "ABOUT": "A PROPOS",
+                "QUIT": "QUITTER",
+                "RETURN": "RETOUR",
+                "CONFIG": "CONFIGURATION",
+                "ENTER_NAME": "Entrez votre nom :",
+                "SELECT_DIFF": "Sélectionnez la difficulté (Colonnes) :",
+                "CONFIRM": "Appuyez sur ENTRÉE pour valider",
+                "GREETING": "Bonjour",
+                "VALIDATE": "VALIDER",
+                "SEC_LEVEL": "NIVEAU DE SECURITE",
+                "PLAYER": "Joueur",
+                "TIME": "Temps"
+            },
+            "EN": {
+                "ARCADE": "ARCADE",
+                "DOCUMENTATION": "DOCUMENTATION",
+                "ABOUT": "ABOUT",
+                "QUIT": "QUIT",
+                "RETURN": "RETURN",
+                "CONFIG": "CONFIGURATION",
+                "ENTER_NAME": "Enter your name:",
+                "SELECT_DIFF": "Select Difficulty (Columns):",
+                "CONFIRM": "Press ENTER to confirm",
+                "GREETING": "Hello",
+                "VALIDATE": "VALIDATE",
+                "SEC_LEVEL": "SECURITY LEVEL",
+                "PLAYER": "Player",
+                "TIME": "Time"
+            },
+            "NL": {
+                "ARCADE": "ARCADE",
+                "DOCUMENTATION": "DOCUMENTATIE",
+                "ABOUT": "OVER",
+                "QUIT": "STOPPEN",
+                "RETURN": "TERUG",
+                "CONFIG": "CONFIGURATIE",
+                "ENTER_NAME": "Voer uw naam in:",
+                "SELECT_DIFF": "Selecteer moeilijkheidsgraad:",
+                "CONFIRM": "Druk op ENTER om te bevestigen",
+                "GREETING": "Hallo",
+                "VALIDATE": "VALIDEREN",
+                "SEC_LEVEL": "BEVEILIGINGSNIVEAU",
+                "PLAYER": "Speler",
+                "TIME": "Tijd"
+            }
+        }
+    
+    def get(self, key):
+        return self.translations.get(self.current_language, self.translations["FR"]).get(key, key)
+
+    def set_language(self, lang):
+        if lang in self.translations:
+            self.current_language = lang
+
+# Global Language Manager instance
+LANG_MGR = LanguageManager()
+
+
 class SceneManager:
     def __init__(self, screen):
         self.screen = screen
@@ -65,7 +130,7 @@ class MenuScene(Scene):
         self.font_large = pygame.font.SysFont("Arial", 48, bold=True)
         self.font_menu = pygame.font.SysFont("Arial", 36)
         
-        self.menu_items = ["ARCADE", "DOCUMENTATION", "A PROPOS", "QUITTER"]
+        self.menu_keys = ["ARCADE", "DOCUMENTATION", "ABOUT", "QUIT"]
         self.selected_index = 0
         self.menu_rects = [] # Initialize here to prevent AttributeError in handle_event
         
@@ -75,27 +140,82 @@ class MenuScene(Scene):
         self.logo_esiea = None
         self.logo_inria = None
         self.logo_digital = None
+        self.flags = {}
+        self.flag_rects = []
         
+        # 1. Background
         try:
-            # Background
             bg_path = os.path.join("cryptris", "img", "bg-circuits.png")
-            self.bg_image = pygame.image.load(bg_path).convert()
-            self.bg_image = pygame.transform.scale(self.bg_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
-            
-            # Logos
-            self.logo_main = pygame.image.load(os.path.join("cryptris", "img", "logo-cryptris-large.png")).convert_alpha()
-            self.logo_esiea = pygame.image.load(os.path.join("cryptris", "img", "logo-esiea.png")).convert_alpha()
-            self.logo_inria = pygame.image.load(os.path.join("cryptris", "img", "logo-inria-medium.png")).convert_alpha()
-            self.logo_digital = pygame.image.load(os.path.join("cryptris", "img", "logo-digital-cuisine-medium.png")).convert_alpha()
+            if os.path.exists(bg_path):
+                self.bg_image = pygame.image.load(bg_path).convert()
+                self.bg_image = pygame.transform.scale(self.bg_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
+        except Exception as e:
+            print(f"Error loading background: {e}")
 
-            # Rescale ESIEA logo if too big (e.g., max width 200)
-            if self.logo_esiea.get_width() > 250:
+        # 2. Logos
+        try:
+            p = os.path.join("cryptris", "img", "logo-cryptris-large.png")
+            if os.path.exists(p): self.logo_main = pygame.image.load(p).convert_alpha()
+            
+            p = os.path.join("cryptris", "img", "logo-esiea.png")
+            if os.path.exists(p): self.logo_esiea = pygame.image.load(p).convert_alpha()
+            
+            p = os.path.join("cryptris", "img", "logo-inria-medium.png")
+            if os.path.exists(p): self.logo_inria = pygame.image.load(p).convert_alpha()
+            
+            # ESIEA NEW / Digital Cuisine Fallback
+            p_new = os.path.join("cryptris", "img", "logo-esiea-new.jpg")
+            p_old = os.path.join("cryptris", "img", "logo-digital-cuisine-medium.png")
+            
+            if os.path.exists(p_new):
+                try:
+                    self.logo_digital = pygame.image.load(p_new).convert_alpha()
+                    # Scale it
+                    if self.logo_digital.get_height() > 80:
+                         scale = 80 / self.logo_digital.get_height()
+                         self.logo_digital = pygame.transform.scale(self.logo_digital, (int(self.logo_digital.get_width()*scale), int(self.logo_digital.get_height()*scale)))
+                except:
+                    print(f"Failed to load new ESIEA logo, using old/fallback.")
+            
+            if not self.logo_digital and os.path.exists(p_old):
+                self.logo_digital = pygame.image.load(p_old).convert_alpha()
+
+            # Rescale ESIEA logo if too big
+            if self.logo_esiea and self.logo_esiea.get_width() > 250:
                 scale = 250 / self.logo_esiea.get_width()
                 new_size = (int(self.logo_esiea.get_width() * scale), int(self.logo_esiea.get_height() * scale))
                 self.logo_esiea = pygame.transform.scale(self.logo_esiea, new_size)
-                
+
         except Exception as e:
-            print(f"Error loading menu assets: {e}")
+            print(f"Error loading logos: {e}")
+
+        # 3. Flags (Must load even if logos fail)
+        try:
+            flag_files = {"FR": "flag_fr.png", "EN": "flag_en.png", "NL": "flag_nl.png"}
+            for lang, fname in flag_files.items():
+                fpath = os.path.join("cryptris", "img", fname)
+                loaded = False
+                if os.path.exists(fpath):
+                    try:
+                        surf = pygame.image.load(fpath).convert_alpha()
+                        surf = pygame.transform.scale(surf, (50, 30))
+                        self.flags[lang] = surf
+                        loaded = True
+                    except:
+                        pass
+                
+                if not loaded:
+                    # Fallback
+                    surf = pygame.Surface((50, 30))
+                    if lang == "FR": surf.fill((0, 0, 255))
+                    elif lang == "EN": surf.fill((255, 0, 0))
+                    elif lang == "NL": surf.fill((255, 165, 0))
+                    f = pygame.font.SysFont("Arial", 12)
+                    t = f.render(lang, True, (255, 255, 255))
+                    surf.blit(t, (10, 8))
+                    self.flags[lang] = surf
+        except Exception as e:
+            print(f"Error loading flags: {e}")
 
     def draw(self, screen):
         # Background
@@ -106,16 +226,102 @@ class MenuScene(Scene):
             
         # 1. Main Logo (Top Center)
         if self.logo_main:
-            # Position at y=180 centered (Safe for 900p)
             rect = self.logo_main.get_rect(center=(SCREEN_WIDTH//2, 180))
             screen.blit(self.logo_main, rect)
         else:
-            # Fallback text
-            # Sized for 900p
             fallback_font = pygame.font.SysFont("Arial", 80, bold=True)
             title = fallback_font.render("CRYPTRIS", True, (0, 255, 255))
             screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, 150))
 
+        # 2. ESIEA Logo (Top Right)
+        if self.logo_esiea:
+            margin = 30
+            x = SCREEN_WIDTH - self.logo_esiea.get_width() - margin
+            y = margin
+            screen.blit(self.logo_esiea, (x, y))
+
+        # 3. Footer Logos (Bottom Center/Sides)
+        if self.logo_inria and self.logo_digital:
+            margin_bottom = 40
+            spacing = 50
+            total_w = self.logo_inria.get_width() + self.logo_digital.get_width() + spacing
+            start_x = (SCREEN_WIDTH - total_w) // 2
+            y = SCREEN_HEIGHT - self.logo_inria.get_height() - margin_bottom
+            screen.blit(self.logo_digital, (start_x, y))
+            screen.blit(self.logo_inria, (start_x + self.logo_digital.get_width() + spacing, y))
+
+        # 4. Language Flags
+        flag_y = 300
+        total_flag_w = len(self.flags) * 60
+        flag_start_x = (SCREEN_WIDTH - total_flag_w) // 2
+        
+        self.flag_rects = []
+        langs = ["EN", "NL", "FR"]
+        for i, lang in enumerate(langs):
+            if lang in self.flags:
+                img = self.flags[lang]
+                x = flag_start_x + i * 60
+                
+                if lang == LANG_MGR.current_language:
+                    pygame.draw.rect(screen, (0, 255, 255), (x-2, flag_y-2, 54, 34), 2)
+                
+                rect = screen.blit(img, (x, flag_y))
+                self.flag_rects.append((rect, lang))
+
+        # 5. Vertical Menu
+        menu_start_y = 450
+        item_spacing = 60
+        self.menu_rects = []
+        
+        for i, key in enumerate(self.menu_keys):
+            is_selected = (i == self.selected_index)
+            item_text = LANG_MGR.get(key)
+            text_str = item_text
+
+            if is_selected:
+                text_str = f"> {item_text} <"
+                color = (0, 255, 255)
+            else:
+                color = (0, 100, 150)
+                
+            text = self.font_menu.render(text_str, True, color)
+            x = SCREEN_WIDTH // 2 - text.get_width() // 2
+            y = menu_start_y + i * item_spacing
+            
+            if is_selected:
+                shadow = self.font_menu.render(text_str, True, (0, 50, 50))
+                screen.blit(shadow, (x+2, y+2))
+            
+            item_rect = text.get_rect(topleft=(x, y))
+            self.menu_rects.append((item_rect, i))
+            screen.blit(text, (x, y))
+
+    def handle_event(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
+                self.selected_index = (self.selected_index - 1) % len(self.menu_keys)
+            elif event.key == pygame.K_DOWN:
+                self.selected_index = (self.selected_index + 1) % len(self.menu_keys)
+            elif event.key == pygame.K_RETURN:
+                self.trigger_menu_action()
+        
+        elif event.type == pygame.MOUSEMOTION:
+            for rect, index in self.menu_rects:
+                if rect.collidepoint(event.pos):
+                    self.selected_index = index
+
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                # Check Menu clicks
+                for rect, index in self.menu_rects:
+                    if rect.collidepoint(event.pos):
+                        self.selected_index = index
+                        self.trigger_menu_action()
+                
+                # Check Flag clicks
+                for rect, lang in self.flag_rects:
+                    if rect.collidepoint(event.pos):
+                        LANG_MGR.set_language(lang)
         # 2. ESIEA Logo (Top Right)
         if self.logo_esiea:
             # Padding from edges
@@ -135,19 +341,39 @@ class MenuScene(Scene):
             start_x = (SCREEN_WIDTH - total_w) // 2
             y = SCREEN_HEIGHT - self.logo_inria.get_height() - margin_bottom
             
-            screen.blit(self.logo_digital, (start_x, y)) # Digital Cuisine first?
+            screen.blit(self.logo_digital, (start_x, y)) # Now ESIEA New
             screen.blit(self.logo_inria, (start_x + self.logo_digital.get_width() + spacing, y))
 
-        # 4. Vertical Menu
+        # 4. Language Flags (Center, below Menu or wherever appropriate)
+        # Let's put them below the main logo (y=180 + logo height ~ 100 -> y=300)
+        flag_y = 300
+        total_flag_w = len(self.flags) * 60 # 50 width + 10 padding
+        flag_start_x = (SCREEN_WIDTH - total_flag_w) // 2
+        
+        self.flag_rects = []
+        langs = ["EN", "NL", "FR"] # Order
+        for i, lang in enumerate(langs):
+            if lang in self.flags:
+                img = self.flags[lang]
+                x = flag_start_x + i * 60
+                
+                # Active highlight
+                if lang == LANG_MGR.current_language:
+                    pygame.draw.rect(screen, (0, 255, 255), (x-2, flag_y-2, 54, 34), 2)
+                
+                rect = screen.blit(img, (x, flag_y))
+                self.flag_rects.append((rect, lang))
+
+        # 5. Vertical Menu
         menu_start_y = 450
         item_spacing = 60
         
         self.menu_rects = [] # Store rects for mouse interaction
         
-        for i, item in enumerate(self.menu_items):
+        for i, key in enumerate(self.menu_keys):
             is_selected = (i == self.selected_index)
             
-            text_str = item
+            item_text = LANG_MGR.get(key)
             if is_selected:
                 text_str = f"> {item} <"
                 color = (0, 255, 255) # Cyan
@@ -176,9 +402,9 @@ class MenuScene(Scene):
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
-                self.selected_index = (self.selected_index - 1) % len(self.menu_items)
+                self.selected_index = (self.selected_index - 1) % len(self.menu_keys)
             elif event.key == pygame.K_DOWN:
-                self.selected_index = (self.selected_index + 1) % len(self.menu_items)
+                self.selected_index = (self.selected_index + 1) % len(self.menu_keys)
             elif event.key == pygame.K_RETURN:
                 self.trigger_menu_action()
         
@@ -189,21 +415,27 @@ class MenuScene(Scene):
                     self.selected_index = index
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
+                # Check Menu clicks
                 for rect, index in self.menu_rects:
                     if rect.collidepoint(event.pos):
                         self.selected_index = index
                         self.trigger_menu_action()
+                
+                # Check Flag clicks
+                for rect, lang in self.flag_rects:
+                    if rect.collidepoint(event.pos):
+                        LANG_MGR.set_language(lang)
 
     def trigger_menu_action(self):
-        selection = self.menu_items[self.selected_index]
-        if selection == "ARCADE":
+        key = self.menu_keys[self.selected_index]
+        if key == "ARCADE":
              # Go to Name/Difficulty Config
              self.manager.switch_to(ConfigScene())
-        elif selection == "DOCUMENTATION":
+        elif key == "DOCUMENTATION":
              self.manager.switch_to(DocumentationScene())
-        elif selection == "A PROPOS":
+        elif key == "ABOUT":
              self.manager.switch_to(AboutScene())
-        elif selection == "QUIT" or selection == "QUITTER":
+        elif key == "QUIT":
             pygame.quit()
             sys.exit()
 
@@ -352,7 +584,7 @@ class DocumentationScene(Scene):
         pygame.draw.rect(screen, color_bg, self.back_rect, border_radius=5)
         pygame.draw.rect(screen, color_border, self.back_rect, 2, border_radius=5)
         
-        text_surf = self.font_desc.render("RETOUR", True, (0, 255, 255))
+        text_surf = self.font_desc.render(LANG_MGR.get("RETURN"), True, (0, 255, 255))
         text_rect = text_surf.get_rect(center=self.back_rect.center)
         screen.blit(text_surf, text_rect)
 
@@ -512,7 +744,7 @@ class AboutScene(Scene):
         pygame.draw.rect(screen, color_bg, self.back_rect, border_radius=5)
         pygame.draw.rect(screen, color_border, self.back_rect, 2, border_radius=5)
         
-        text_surf = self.font_small.render("RETOUR", True, (0, 255, 255))
+        text_surf = self.font_small.render(LANG_MGR.get("RETURN"), True, (0, 255, 255))
         text_rect = text_surf.get_rect(center=self.back_rect.center)
         screen.blit(text_surf, text_rect)
 
@@ -683,7 +915,7 @@ class KeyCreationScene(Scene):
         
         elapsed = (pygame.time.get_ticks() - self.timer_start) // 1000
         m, s = divmod(elapsed, 60)
-        lbl_timer = self.font.render(f"Temps : {m:02}:{s:02}", True, (0, 255, 0))
+        lbl_timer = self.font.render(f"{LANG_MGR.get('TIME')} : {m:02}:{s:02}", True, (0, 255, 0))
         screen.blit(lbl_timer, (panel_x, panel_y + 40))
         
         # 2. Security Level Visual
@@ -729,7 +961,7 @@ class KeyCreationScene(Scene):
         pygame.draw.rect(screen, c_bg, self.btn_validate_rect, border_radius=8)
         pygame.draw.rect(screen, c_border, self.btn_validate_rect, 2, border_radius=8)
         
-        v_text = self.font.render("VALIDER", True, (255, 255, 255))
+        v_text = self.font.render(LANG_MGR.get("VALIDATE"), True, (255, 255, 255))
         v_rect = v_text.get_rect(center=self.btn_validate_rect.center)
         screen.blit(v_text, v_rect)
 
