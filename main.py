@@ -35,7 +35,39 @@ class LanguageManager:
                 "VALIDATE": "VALIDER",
                 "SEC_LEVEL": "NIVEAU DE SECURITE",
                 "PLAYER": "Joueur",
-                "TIME": "Temps"
+                "TIME": "Temps",
+                "SPY": "LOGICIEL ESPION",
+                "PRIV_KEY": "CLE PRIV",
+                "PUB_KEY": "CLE PUB",
+                "PRIV_KEY_FULL": "CLE PRIVEE",
+                "PUB_KEY_FULL": "CLE PUBLIQUE",
+                "VICTORY": "VICTOIRE !",
+                "DEFEAT": "DEFAITE...",
+                "FAILURE": "ECHEC...",
+                "CHALLENGE_UNLOCKED": "DEFI DEVERROUILLE",
+                "MSG_DECRYPTED": "MESSAGE DECHIFFRE :",
+                "MAIN_MENU": "MENU PRINCIPAL",
+                "NEXT_CHALLENGE": "PROCHAIN DEFI",
+                "CREATE_KEY": "CREER CLE",
+                "INSTR_SELECT": "HAUT/BAS pour Choisir, ENTRÉE pour Jouer/Créer",
+                "INSTR_BACK": "ECHAP pour revenir",
+                "CONTROLS_1": "GAUCHE/DROITE : Bouger",
+                "CONTROLS_2": "ESPACE : Inverser Couleur",
+                "CONTROLS_3": "BAS : Lâcher",
+                "VERSION_TEXT_1": "Cette version est une réécriture complète en ",
+                "VERSION_TEXT_2": " réalisée par ",
+                "CREDIT_FOR": " pour le projet de ",
+                "CREDIT_COURSE": "Cryptographie Appliquée",
+                "CREDIT_AT": " à l'",
+                "INSPIRATION_1": "Elle s'inspire du jeu original Cryptris créé par ",
+                "AND": " et ",
+                "SUPPORT": "avec le soutien de ",
+                "ABOUT_P2_L1": "L'objectif est d'illustrer la différence fondamentale entre clé publique et clé privée.",
+                "ABOUT_P2_L2": "Le joueur doit construire sa propre clé secrète pour décrypter les messages,",
+                "ABOUT_P2_L3": "tout en affrontant une IA qui tente de casser le code par force brute.",
+                "ABOUT_P3_L1": "Au fur et à mesure, votre clé se renforce. Bien qu'elle reste simple à manipuler",
+                "ABOUT_P3_L2": "pour vous, elle devient un véritable obstacle pour l'ordinateur.",
+                "ABOUT_P3_L3": "C'est là toute la puissance de la sécurité asymétrique !"
             },
             "EN": {
                 "ARCADE": "ARCADE",
@@ -51,7 +83,39 @@ class LanguageManager:
                 "VALIDATE": "VALIDATE",
                 "SEC_LEVEL": "SECURITY LEVEL",
                 "PLAYER": "Player",
-                "TIME": "Time"
+                "TIME": "Time",
+                "SPY": "SPYWARE",
+                "PRIV_KEY": "PRIV KEY",
+                "PUB_KEY": "PUB KEY",
+                "PRIV_KEY_FULL": "PRIVATE KEY",
+                "PUB_KEY_FULL": "PUBLIC KEY",
+                "VICTORY": "VICTORY!",
+                "DEFEAT": "DEFEAT...",
+                "FAILURE": "FAILURE...",
+                "CHALLENGE_UNLOCKED": "CHALLENGE UNLOCKED",
+                "MSG_DECRYPTED": "DECRYPTED MESSAGE:",
+                "MAIN_MENU": "MAIN MENU",
+                "NEXT_CHALLENGE": "NEXT CHALLENGE",
+                "CREATE_KEY": "CREATE KEY",
+                "INSTR_SELECT": "UP/DOWN to Choose, ENTER to Play/Create",
+                "INSTR_BACK": "ESCAPE to return",
+                "CONTROLS_1": "LEFT/RIGHT: Move",
+                "CONTROLS_2": "SPACE: Invert Color",
+                "CONTROLS_3": "DOWN: Drop",
+                "VERSION_TEXT_1": "This version is a complete rewrite in ",
+                "VERSION_TEXT_2": " made by ",
+                "CREDIT_FOR": " for the ",
+                "CREDIT_COURSE": "Applied Cryptography Project",
+                "CREDIT_AT": " at ",
+                "INSPIRATION_1": "It is inspired by the original Cryptris game created by ",
+                "AND": " and ",
+                "SUPPORT": "with the support of ",
+                "ABOUT_P2_L1": "The goal is to illustrate the fundamental difference between public and private keys.",
+                "ABOUT_P2_L2": "The player must build their own secret key to decrypt messages,",
+                "ABOUT_P2_L3": "while facing an AI trying to break the code by brute force.",
+                "ABOUT_P3_L1": "As you progress, your key gets stronger. While it remains easy for you to handle,",
+                "ABOUT_P3_L2": "it becomes a real obstacle for the computer.",
+                "ABOUT_P3_L3": "That is the power of asymmetric security!"
             },
             "NL": {
                 "ARCADE": "ARCADE",
@@ -67,7 +131,39 @@ class LanguageManager:
                 "VALIDATE": "VALIDEREN",
                 "SEC_LEVEL": "BEVEILIGINGSNIVEAU",
                 "PLAYER": "Speler",
-                "TIME": "Tijd"
+                "TIME": "Tijd",
+                "SPY": "SPYWARE",
+                "PRIV_KEY": "PRIV SLEUTEL",
+                "PUB_KEY": "PUB SLEUTEL",
+                "PRIV_KEY_FULL": "PRIVESLEUTEL",
+                "PUB_KEY_FULL": "PUBLIEKE SLEUTEL",
+                "VICTORY": "OVERWINNING!",
+                "DEFEAT": "NEERLAAG...",
+                "FAILURE": "MISLUKKING...",
+                "CHALLENGE_UNLOCKED": "UITDAGING ONTGRENDELD",
+                "MSG_DECRYPTED": "ONTSLEUTELD BERICHT:",
+                "MAIN_MENU": "HOOFDMENU",
+                "NEXT_CHALLENGE": "VOLGENDE UITDAGING",
+                "CREATE_KEY": "SLEUTEL MAKEN",
+                "INSTR_SELECT": "OMHOOG/OMLAAG om te kiezen, ENTER om te Spelen",
+                "INSTR_BACK": "ESCAPE om terug te keren",
+                "CONTROLS_1": "LINKS/RECHTS: Bewegen",
+                "CONTROLS_2": "SPATIE: Kleur Omkeren",
+                "CONTROLS_3": "OMLAAG: Laten vallen",
+                "VERSION_TEXT_1": "Deze versie is een volledige herschrijving in ",
+                "VERSION_TEXT_2": " gemaakt door ",
+                "CREDIT_FOR": " voor het ",
+                "CREDIT_COURSE": "Toegepaste Cryptografie Project",
+                "CREDIT_AT": " bij ",
+                "INSPIRATION_1": "Het is geïnspireerd op het originele Cryptris-spel gemaakt door ",
+                "AND": " en ",
+                "SUPPORT": "met de steun van ",
+                "ABOUT_P2_L1": "Het doel is om het fundamentele verschil tussen publieke en privésleutels te illustreren.",
+                "ABOUT_P2_L2": "De speler moet zijn eigen geheime sleutel bouwen om berichten te ontsleutelen,",
+                "ABOUT_P2_L3": "terwijl hij een AI trotseert die probeert de code te kraken met brute kracht.",
+                "ABOUT_P3_L1": "Naarmate je vordert, wordt je sleutel sterker. Hoewel het voor jou eenvoudig blijft,",
+                "ABOUT_P3_L2": "wordt het een echt obstakel voor de computer.",
+                "ABOUT_P3_L3": "Dat is de kracht van asymmetrische beveiliging!"
             }
         }
     
@@ -563,15 +659,15 @@ class AboutScene(Scene):
         
         # Line 0: Author Credit
         draw_centered_text(start_y, [
-            ("Cette version est une réécriture complète en ", (200, 200, 200), self.font_text),
+            (LANG_MGR.get("VERSION_TEXT_1"), (200, 200, 200), self.font_text),
             ("Python", (0, 255, 255), self.font_bold),
-            (" réalisée par ", (200, 200, 200), self.font_text)
+            (LANG_MGR.get("VERSION_TEXT_2"), (200, 200, 200), self.font_text)
         ])
         draw_centered_text(start_y + 30, [
              ("Théo Ammour", (0, 255, 255), self.font_bold),
-             (" pour le projet de ", (200, 200, 200), self.font_text),
-             ("Cryptographie Appliquée", (0, 255, 255), self.font_bold),
-             (" à l'", (200, 200, 200), self.font_text),
+             (LANG_MGR.get("CREDIT_FOR"), (200, 200, 200), self.font_text),
+             (LANG_MGR.get("CREDIT_COURSE"), (0, 255, 255), self.font_bold),
+             (LANG_MGR.get("CREDIT_AT"), (200, 200, 200), self.font_text),
              ("ESIEA", (0, 255, 255), self.font_bold),
              (".", (200, 200, 200), self.font_text)
         ])
@@ -579,15 +675,15 @@ class AboutScene(Scene):
         # Line 1: Inspiration
         y_p1 = start_y + 80
         draw_centered_text(y_p1, [
-            ("Elle s'inspire du jeu original Cryptris créé par ", (200, 200, 200), self.font_text),
+            (LANG_MGR.get("INSPIRATION_1"), (200, 200, 200), self.font_text),
             ("Inria", (0, 255, 255), self.font_bold),
-            (" et ", (200, 200, 200), self.font_text),
+            (LANG_MGR.get("AND"), (200, 200, 200), self.font_text),
             ("Digital Cuisine", (0, 255, 255), self.font_bold),
             (",", (200, 200, 200), self.font_text)
         ])
         
         draw_centered_text(y_p1 + 30, [
-            ("avec le soutien de ", (200, 200, 200), self.font_text),
+            (LANG_MGR.get("SUPPORT"), (200, 200, 200), self.font_text),
             ("Cap'Maths", (0, 255, 255), self.font_bold),
             (".", (200, 200, 200), self.font_text)
         ])
@@ -595,25 +691,25 @@ class AboutScene(Scene):
         # Paragraph 2
         y_p2 = y_p1 + 80
         draw_centered_text(y_p2, [
-            ("L'objectif est d'illustrer la différence fondamentale entre clé publique et clé privée.", (220, 220, 220), self.font_text)
+            (LANG_MGR.get("ABOUT_P2_L1"), (220, 220, 220), self.font_text)
         ])
         draw_centered_text(y_p2 + 30, [
-            ("Le joueur doit construire sa propre clé secrète pour décrypter les messages,", (220, 220, 220), self.font_text)
+            (LANG_MGR.get("ABOUT_P2_L2"), (220, 220, 220), self.font_text)
         ])
         draw_centered_text(y_p2 + 60, [
-            ("tout en affrontant une IA qui tente de casser le code par force brute.", (220, 220, 220), self.font_text)
+            (LANG_MGR.get("ABOUT_P2_L3"), (220, 220, 220), self.font_text)
         ])
         
         # Paragraph 3
         y_p3 = y_p2 + 130
         draw_centered_text(y_p3, [
-            ("Au fur et à mesure, votre clé se renforce. Bien qu'elle reste simple à manipuler", (220, 220, 220), self.font_text)
+            (LANG_MGR.get("ABOUT_P3_L1"), (220, 220, 220), self.font_text)
         ])
         draw_centered_text(y_p3 + 30, [
-            ("pour vous, elle devient un véritable obstacle pour l'ordinateur.", (220, 220, 220), self.font_text)
+            (LANG_MGR.get("ABOUT_P3_L2"), (220, 220, 220), self.font_text)
         ])
         draw_centered_text(y_p3 + 60, [
-             ("C'est là toute la puissance de la sécurité asymétrique !", (220, 220, 220), self.font_text)
+             (LANG_MGR.get("ABOUT_P3_L3"), (220, 220, 220), self.font_text)
         ])
         
         # Logos Footer
@@ -808,7 +904,7 @@ class KeyCreationScene(Scene):
         panel_y = self.grid_y
         
         # 1. Player Info & Timer
-        lbl_player = self.font.render(f"Joueur : {self.player_name}", True, (255, 255, 255))
+        lbl_player = self.font.render(f"{LANG_MGR.get('PLAYER')} : {self.player_name}", True, (255, 255, 255))
         screen.blit(lbl_player, (panel_x, panel_y))
         
         elapsed = (pygame.time.get_ticks() - self.timer_start) // 1000
@@ -820,7 +916,7 @@ class KeyCreationScene(Scene):
         str_lbl, str_color, str_pct = self.get_strength_info()
         
         sec_y = panel_y + 120
-        lbl_sec = self.font.render("NIVEAU DE SECURITE", True, (0, 200, 255))
+        lbl_sec = self.font.render(LANG_MGR.get("SEC_LEVEL"), True, (0, 200, 255))
         screen.blit(lbl_sec, (panel_x, sec_y))
         
         # Bar
@@ -837,9 +933,9 @@ class KeyCreationScene(Scene):
         ctrl_y = sec_y + 150
         ctrl_text_y = ctrl_y + 80
         lines = [
-            "GAUCHE/DROITE : Bouger",
-            "ESPACE : Inverser Couleur",
-            "BAS : Lâcher"
+            LANG_MGR.get("CONTROLS_1"),
+            LANG_MGR.get("CONTROLS_2"),
+            LANG_MGR.get("CONTROLS_3")
         ]
         for i, line in enumerate(lines):
             t = self.small_font.render(line, True, (180, 180, 180))
@@ -888,7 +984,12 @@ class ConfigScene(Scene):
         self.selected_length_index = 0
         self.lengths = ["CREER CLE"] + AUTHORIZED_LENGTH
         self.player_name = ""
-        self.state = "NAME_INPUT" # States: "NAME_INPUT", "DIFFICULTY_SELECT"
+        self.state = "NAME_INPUT" # States: "NAME_INPUT", "KEY_SELECT", "DIFFICULTY_SELECT"
+        
+        # Key Config
+        self.key_config_index = 0 # 0: Player, 1: AI
+        self.player_key_mode = "PRIVATE" # PRIVATE / PUBLIC
+        self.ai_key_mode = "PUBLIC" # PRIVATE / PUBLIC
         
         # Load background
         try:
@@ -906,27 +1007,77 @@ class ConfigScene(Scene):
             screen.fill(BACKGROUND_COLOR)
         
         # Title
-        title = self.font.render("CONFIGURATION", True, (255, 255, 255))
+        title = self.font.render(LANG_MGR.get("CONFIG"), True, (255, 255, 255))
         screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, 50))
         
         if self.state == "NAME_INPUT":
             # Name Input UI
-            name_label = self.small_font.render("Entrez votre nom :", True, (200, 200, 200))
+            name_label = self.small_font.render(LANG_MGR.get("ENTER_NAME"), True, (200, 200, 200))
             screen.blit(name_label, (SCREEN_WIDTH//2 - name_label.get_width()//2, 250))
             
             name_surface = self.font.render(self.player_name + "_", True, (0, 255, 255))
             screen.blit(name_surface, (SCREEN_WIDTH//2 - name_surface.get_width()//2, 290))
             
-            instr = self.small_font.render("Appuyez sur ENTRÉE pour valider", True, (150, 150, 150))
+            instr = self.small_font.render(LANG_MGR.get("CONFIRM"), True, (150, 150, 150))
             screen.blit(instr, (SCREEN_WIDTH//2 - instr.get_width()//2, 400))
+            
+        elif self.state == "KEY_SELECT":
+            # Key Selection UI
+            start_y = 250
+            spacing = 80
+            
+            # --- Row 1: Player ---
+            # Label "PLAYER :"
+            p_label = self.small_font.render(f"{LANG_MGR.get('PLAYER')} :", True, (255, 255, 255))
+            screen.blit(p_label, (SCREEN_WIDTH//2 - 200, start_y))
+            
+            # Value "< CLE PRIVEE >"
+            p_val_color = (0, 255, 255) if self.key_config_index == 0 else (100, 100, 100)
+            p_val_text = f"< {LANG_MGR.get('PRIV_KEY_FULL') if self.player_key_mode == 'PRIVATE' else LANG_MGR.get('PUB_KEY_FULL')} >"
+            
+            # Highlight if selected
+            if self.key_config_index == 0:
+                # Add Glow
+                glow = self.small_font.render(p_val_text, True, (0, 100, 100))
+                screen.blit(glow, (SCREEN_WIDTH//2 + 52, start_y + 2))
+                
+            p_val_surf = self.small_font.render(p_val_text, True, p_val_color)
+            screen.blit(p_val_surf, (SCREEN_WIDTH//2 + 50, start_y))
+            
+            
+            # --- Row 2: AI ---
+            # Label "ADVERSAIRE :"
+            a_label = self.small_font.render(f"{LANG_MGR.get('SPY')} :", True, (255, 255, 255))
+            screen.blit(a_label, (SCREEN_WIDTH//2 - 200, start_y + spacing))
+            
+            # Value "< CLE PUBLIQUE >"
+            a_val_color = (0, 255, 255) if self.key_config_index == 1 else (100, 100, 100)
+            a_val_text = f"< {LANG_MGR.get('PRIV_KEY_FULL') if self.ai_key_mode == 'PRIVATE' else LANG_MGR.get('PUB_KEY_FULL')} >"
+            
+            # Highlight if selected
+            if self.key_config_index == 1:
+                # Add Glow
+                glow = self.small_font.render(a_val_text, True, (0, 100, 100))
+                screen.blit(glow, (SCREEN_WIDTH//2 + 52, start_y + spacing + 2))
+            
+            a_val_surf = self.small_font.render(a_val_text, True, a_val_color)
+            screen.blit(a_val_surf, (SCREEN_WIDTH//2 + 50, start_y + spacing))
+            
+            
+            # Instructions
+            instr = self.small_font.render(LANG_MGR.get("INSTR_SELECT"), True, (200, 200, 200))
+            screen.blit(instr, (SCREEN_WIDTH//2 - instr.get_width()//2, 500))
+
+            conf = self.small_font.render(LANG_MGR.get("CONFIRM"), True, (150, 150, 150))
+            screen.blit(conf, (SCREEN_WIDTH//2 - conf.get_width()//2, 550))
             
         elif self.state == "DIFFICULTY_SELECT":
             # Greeting
-            greet = self.small_font.render(f"Bonjour {self.player_name} !", True, (0, 255, 255))
+            greet = self.small_font.render(f"{LANG_MGR.get('GREETING')} {self.player_name} !", True, (0, 255, 255))
             screen.blit(greet, (SCREEN_WIDTH//2 - greet.get_width()//2, 150))
 
             # Difficulty Selection
-            sel_text = self.small_font.render("Sélectionnez la difficulté (Colonnes) :", True, (200, 200, 200))
+            sel_text = self.small_font.render(LANG_MGR.get("SELECT_DIFF"), True, (200, 200, 200))
             screen.blit(sel_text, (SCREEN_WIDTH//2 - sel_text.get_width()//2, 220))
             
             # Draw options VERTICALLY
@@ -944,6 +1095,10 @@ class ConfigScene(Scene):
                 if is_selected:
                     text_str = f"> {length} <"
                 
+                # Check for "CREER CLE" text to translate if present in lengths
+                if length == "CREER CLE":
+                    text_str = text_str.replace("CREER CLE", LANG_MGR.get("CREATE_KEY"))
+                
                 opt_text = self.font.render(text_str, True, color)
                 
                 x = SCREEN_WIDTH//2 - opt_text.get_width()//2
@@ -956,10 +1111,10 @@ class ConfigScene(Scene):
                 self.length_rects.append((r, i))
 
             # Instructions
-            text = self.small_font.render("HAUT/BAS pour Choisir, ENTRÉE pour Jouer/Créer", True, (200, 200, 200))
+            text = self.small_font.render(LANG_MGR.get("INSTR_SELECT"), True, (200, 200, 200))
             screen.blit(text, (SCREEN_WIDTH//2 - text.get_width()//2, 750))
             
-            back = self.small_font.render("ECHAP pour revenir", True, (100, 100, 100))
+            back = self.small_font.render(LANG_MGR.get("INSTR_BACK"), True, (100, 100, 100))
             screen.blit(back, (SCREEN_WIDTH//2 - back.get_width()//2, 800))
 
     def handle_event(self, event):
@@ -968,7 +1123,7 @@ class ConfigScene(Scene):
                 if event.key == pygame.K_RETURN:
                     if self.player_name.strip() == "":
                         self.player_name = "Player"
-                    self.state = "DIFFICULTY_SELECT"
+                    self.state = "KEY_SELECT" # Next State
                 elif event.key == pygame.K_ESCAPE:
                     self.manager.switch_to(MenuScene())
                 elif event.key == pygame.K_BACKSPACE:
@@ -978,6 +1133,22 @@ class ConfigScene(Scene):
                     if len(self.player_name) < 12 and event.unicode.isprintable():
                         self.player_name += event.unicode
                         
+            elif self.state == "KEY_SELECT":
+                if event.key == pygame.K_UP or event.key == pygame.K_DOWN:
+                    self.key_config_index = 1 - self.key_config_index # Toggle 0 <-> 1
+                
+                elif event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
+                    if self.key_config_index == 0: # Player
+                        self.player_key_mode = "PUBLIC" if self.player_key_mode == "PRIVATE" else "PRIVATE"
+                    else: # AI
+                        self.ai_key_mode = "PUBLIC" if self.ai_key_mode == "PRIVATE" else "PRIVATE"
+                
+                elif event.key == pygame.K_RETURN:
+                    self.state = "DIFFICULTY_SELECT"
+                    
+                elif event.key == pygame.K_ESCAPE:
+                    self.state = "NAME_INPUT"
+
             elif self.state == "DIFFICULTY_SELECT":
                 if event.key == pygame.K_UP:
                     self.selected_length_index = (self.selected_length_index - 1) % len(self.lengths)
@@ -988,9 +1159,11 @@ class ConfigScene(Scene):
                     if selected == "CREER CLE":
                         self.manager.switch_to(KeyCreationScene(self.player_name))
                     else:
-                        self.manager.switch_to(GameScene(selected, self.player_name))
+                        self.manager.switch_to(GameScene(selected, self.player_name, 
+                                                       player_key_mode=self.player_key_mode,
+                                                       ai_key_mode=self.ai_key_mode))
                 elif event.key == pygame.K_ESCAPE:
-                    self.state = "NAME_INPUT"
+                    self.state = "KEY_SELECT"
                     
             # Mouse support for Difficulty Select
         if self.state == "DIFFICULTY_SELECT":
@@ -1011,7 +1184,9 @@ class ConfigScene(Scene):
                                 if selected == "CREER CLE":
                                     self.manager.switch_to(KeyCreationScene(self.player_name))
                                 else:
-                                    self.manager.switch_to(GameScene(selected, self.player_name))
+                                    self.manager.switch_to(GameScene(selected, self.player_name, 
+                                                                   player_key_mode=self.player_key_mode,
+                                                                   ai_key_mode=self.ai_key_mode))
 
 class VictoryPopup:
     def __init__(self, screen_width, screen_height, decrypted_code, on_menu, on_next):
@@ -1068,7 +1243,7 @@ class VictoryPopup:
         pygame.draw.rect(screen, (255, 255, 255), rect, 2)
         
         # Titre
-        title_surf = self.title_font.render("DEFI DEVERROUILLE", True, (255, 255, 255))
+        title_surf = self.title_font.render(LANG_MGR.get("CHALLENGE_UNLOCKED"), True, (255, 255, 255))
         screen.blit(title_surf, (self.x + 20, self.y + 15))
         
         # Contenu - Icône Cadenas (Gauche)
@@ -1083,7 +1258,10 @@ class VictoryPopup:
         # Contenu - Message (Droite)
         msg_x = self.x + 200
         msg_y = self.y + 120
-        label = self.msg_font.render("MESSAGE DECHIFFRE :", True, (100, 100, 100))
+        # Contenu - Message (Droite)
+        msg_x = self.x + 200
+        msg_y = self.y + 120
+        label = self.msg_font.render(LANG_MGR.get("MSG_DECRYPTED"), True, (100, 100, 100))
         screen.blit(label, (msg_x, msg_y))
         
         # Boîte de Code
@@ -1098,13 +1276,13 @@ class VictoryPopup:
         # Menu Button
         c_menu = self.btn_hover_color if self.rect_menu.collidepoint(mx, my) else self.btn_menu_color
         pygame.draw.rect(screen, c_menu, self.rect_menu)
-        txt_menu = self.btn_font.render("MENU PRINCIPAL", True, (255, 255, 255))
+        txt_menu = self.btn_font.render(LANG_MGR.get("MAIN_MENU"), True, (255, 255, 255))
         screen.blit(txt_menu, (self.rect_menu.centerx - txt_menu.get_width()//2, self.rect_menu.centery - txt_menu.get_height()//2))
         
         # Next Button
         c_next = self.btn_hover_color if self.rect_next.collidepoint(mx, my) else self.btn_next_color
         pygame.draw.rect(screen, c_next, self.rect_next)
-        txt_next = self.btn_font.render("PROCHAIN DEFI", True, (255, 255, 255))
+        txt_next = self.btn_font.render(LANG_MGR.get("NEXT_CHALLENGE"), True, (255, 255, 255))
         screen.blit(txt_next, (self.rect_next.centerx - txt_next.get_width()//2, self.rect_next.centery - txt_next.get_height()//2))
 
     def handle_event(self, event):
@@ -1116,10 +1294,12 @@ class VictoryPopup:
                     self.on_next()
 
 class GameScene(Scene):
-    def __init__(self, length=MIN_BOARD_LENGTH, player_name="Player", custom_key=None):
+    def __init__(self, length=MIN_BOARD_LENGTH, player_name="Player", custom_key=None, player_key_mode="PRIVATE", ai_key_mode="PUBLIC"):
         super().__init__()
         self.current_length = length
         self.player_name = player_name
+        self.player_key_mode = player_key_mode
+        self.ai_key_mode = ai_key_mode
         
         # 1. Player Key Info (Always Standard)
         self.player_key_info = get_key_info()
@@ -1175,11 +1355,13 @@ class GameScene(Scene):
                     pk_entry['number'].append(val)
 
         # Generate Puzzles (Messages)
-        # Player gets a puzzle based on PLAYER key
-        self.player_target_message = self.generate_solvable_message(self.current_length, self.player_key_info)
+        # Determine which key to use for Player
+        p_key_type = 'private_key' if self.player_key_mode == "PRIVATE" else 'public_key'
+        self.player_target_message = self.generate_solvable_message(self.current_length, self.player_key_info, p_key_type)
         
-        # AI gets a puzzle based on AI key
-        self.ai_target_message = self.generate_solvable_message(self.current_length, self.ai_key_info)
+        # Determine which key to use for AI
+        a_key_type = 'private_key' if self.ai_key_mode == "PRIVATE" else 'public_key'
+        self.ai_target_message = self.generate_solvable_message(self.current_length, self.ai_key_info, a_key_type)
         
         # Layout: Player Left, AI Right with Central Gap
         center_width = 300  
@@ -1201,7 +1383,8 @@ class GameScene(Scene):
             current_length=self.current_length,
             key_info=self.player_key_info,
             my_message=self.player_target_message,
-            player=True
+            player=True,
+            use_public=(self.player_key_mode == "PUBLIC")
         )
         
         self.ai_box = GameBox(
@@ -1213,7 +1396,8 @@ class GameScene(Scene):
             current_length=self.current_length,
             key_info=self.ai_key_info,
             my_message=self.ai_target_message, 
-            player=False
+            player=False,
+            use_public=(self.ai_key_mode == "PUBLIC")
         )
         
         self.ai = AI(self.ai_box, {'waitingIATime': 1000, 'keyFirstMoveTime': 500})
@@ -1226,9 +1410,10 @@ class GameScene(Scene):
         self.game_over_color = (255, 255, 255)
         self.victory_popup = None
 
-    def generate_solvable_message(self, length, key_info_source):
-        # Generate a message that is a linear combination of the PROVIDED key
-        key_vector = key_info_source['private_key'][length]['key']
+    def generate_solvable_message(self, length, key_info_source, key_type='private_key'):
+        # Generate a message that is a linear combination of the PROVIDED key (Private or Public)
+        key_vector = key_info_source[key_type][length]['key']
+        # ... (rest of generation logic remains roughly the same, operating on key_vector)
         
         # Find the "Spike" (Max absolute value index) in the key
         spike_val = max(key_vector, key=abs)
@@ -1251,9 +1436,10 @@ class GameScene(Scene):
             # Target a random column to "increase"
             target_col = random.randint(0, length - 1)
             
-            # Calculate rotation needed to bring spike to target_col
-            # rotate(l, k) shift left by k. new = (old - k) % mod
-            # target = (spike - k) % mod  =>  k = (spike - target) % mod
+            # Key rotation logic might differ slightly for Public Keys if we want 'perfect' solvability 
+            # but using the same linear combo logic usually ensures at least one solution exists
+            # because we are constructing the message FROM the key.
+            
             rot = (spike_index - target_col) % length
             
             rotated_key = rotate(length, key_vector, rot)
@@ -1307,7 +1493,7 @@ class GameScene(Scene):
         if status == "WIN":
             self.game_over = True
             self.game_over_timer = current_time
-            self.game_over_message = "VICTOIRE !"
+            self.game_over_message = LANG_MGR.get("VICTORY")
             self.game_over_color = (0, 255, 0)
             
             # Trigger Popup
@@ -1319,7 +1505,7 @@ class GameScene(Scene):
         elif status == "LOSS":
             self.game_over = True
             self.game_over_timer = current_time
-            self.game_over_message = "DEFAITE..."
+            self.game_over_message = LANG_MGR.get("DEFEAT")
             self.game_over_color = (255, 0, 0)
             
         # Check AI Status
@@ -1327,7 +1513,7 @@ class GameScene(Scene):
         if ai_status == "WIN":
             self.game_over = True
             self.game_over_timer = current_time
-            self.game_over_message = "ECHEC..."
+            self.game_over_message = LANG_MGR.get("FAILURE")
             self.game_over_color = (255, 0, 0)
 
     def draw(self, screen):
@@ -1380,7 +1566,7 @@ class GameScene(Scene):
         self.draw_name_box(screen, self.player_name, self.player_box.rect.centerx, 80, is_player=True)
 
         # Draw AI Name Box
-        self.draw_name_box(screen, "LOGICIEL ESPION", self.ai_box.rect.centerx, 80, is_player=False)
+        self.draw_name_box(screen, LANG_MGR.get("SPY"), self.ai_box.rect.centerx, 80, is_player=False)
 
         # We need to manually inject screen into boxes if they store it
         self.player_box.screen = screen
@@ -1443,9 +1629,15 @@ class GameScene(Scene):
     def draw_key_indicators(self, screen):
         font = pygame.font.SysFont("Arial", 16, bold=True)
         
-        # Player Indicator (PRIV) - Cyan
+        # Player Indicator
+        # Cyan if Private, Pink if Public (or keep standard colors?)
+        # Let's use Cyan for Private, Pink for Public
+        p_is_priv = (self.player_key_mode == "PRIVATE")
+        p_color = (0, 255, 255) if p_is_priv else (255, 0, 255)
+        p_text_key = "PRIV_KEY" if p_is_priv else "PUB_KEY"
+        
         indicator_y = self.player_box.rect.top - 25
-        priv_text = font.render("CLE PRIV", True, (0, 255, 255))
+        priv_text = font.render(LANG_MGR.get(p_text_key), True, p_color)
         
         icon_x = self.player_box.rect.right - 20
         text_x = icon_x - priv_text.get_width() - 10
@@ -1453,20 +1645,24 @@ class GameScene(Scene):
         screen.blit(priv_text, (text_x, indicator_y))
         
         # Icon (Player)
-        pygame.draw.circle(screen, (0, 255, 255), (icon_x, indicator_y + 8), 6, 2)
-        pygame.draw.line(screen, (0, 255, 255), (icon_x + 6, indicator_y + 8), (icon_x + 14, indicator_y + 8), 2)
-        pygame.draw.line(screen, (0, 255, 255), (icon_x + 14, indicator_y + 8), (icon_x + 14, indicator_y + 12), 2)
+        pygame.draw.circle(screen, p_color, (icon_x, indicator_y + 8), 6, 2)
+        pygame.draw.line(screen, p_color, (icon_x + 6, indicator_y + 8), (icon_x + 14, indicator_y + 8), 2)
+        pygame.draw.line(screen, p_color, (icon_x + 14, indicator_y + 8), (icon_x + 14, indicator_y + 12), 2)
 
-        # AI Indicator (PUB) - Pink
-        pub_text = font.render("CLE PUB", True, (255, 0, 255))
+        # AI Indicator
+        a_is_priv = (self.ai_key_mode == "PRIVATE")
+        a_color = (0, 255, 255) if a_is_priv else (255, 0, 255)
+        a_text_key = "PRIV_KEY" if a_is_priv else "PUB_KEY"
+        
+        pub_text = font.render(LANG_MGR.get(a_text_key), True, a_color)
         
         icon_x_ai = self.ai_box.rect.left + 20
         text_x_ai = icon_x_ai + 20
         
         # Icon (AI)
-        pygame.draw.circle(screen, (255, 0, 255), (icon_x_ai, indicator_y + 8), 6, 2)
-        pygame.draw.line(screen, (255, 0, 255), (icon_x_ai + 6, indicator_y + 8), (icon_x_ai + 14, indicator_y + 8), 2)
-        pygame.draw.line(screen, (255, 0, 255), (icon_x_ai + 14, indicator_y + 8), (icon_x_ai + 14, indicator_y + 12), 2)
+        pygame.draw.circle(screen, a_color, (icon_x_ai, indicator_y + 8), 6, 2)
+        pygame.draw.line(screen, a_color, (icon_x_ai + 6, indicator_y + 8), (icon_x_ai + 14, indicator_y + 8), 2)
+        pygame.draw.line(screen, a_color, (icon_x_ai + 14, indicator_y + 8), (icon_x_ai + 14, indicator_y + 12), 2)
         
         screen.blit(pub_text, (text_x_ai, indicator_y))
 
