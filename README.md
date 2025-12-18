@@ -62,5 +62,12 @@ Cette version apporte des correctifs majeurs pour l'equilibrage et la jouabilite
 - **Navigation** : Correction de la navigation a la souris dans les menus.
 - **Graphismes** : Mise a jour des logos et assets graphiques.
 
+## Notes de Version (v1.7)
+
+### Gameplay et Configuration
+- **Configuration des Cles** : Choix independant du type de cle (Privee ou Publique) pour le Joueur et l'adversaire (IA).
+- **Equite** : Le Joueur et l'IA partagent desormais le meme puzzle pour garantir une competition equitable.
+- **Stabilite** : Amelioration de la generation de niveaux pour eviter les puzzles vides.
+
 ### Auteur
 Amour Theo (ammour@et.esiea.fr)

@@ -33,12 +33,13 @@ REPEAT_GEN_PUBLIC_KEY_LIST = {
 }
 
 # Combien de fois la clé publique doit être appliquée pour chiffrer un message
+# REDUCED DENSITY (User Request: "Levels less filled")
 REPEAT_CHIFFRE_MSG_LIST = {
-    8: 7,
-    10: 8,
-    12: 9,
-    14: 10,
-    16: 11
+    8: 4,   # Was 7
+    10: 5,  # Was 8
+    12: 6,  # Was 9
+    14: 7,  # Was 10
+    16: 8   # Was 11
 }
 
 # Paramètres IA

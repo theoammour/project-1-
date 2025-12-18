@@ -169,6 +169,49 @@ def gen_public_keys():
                 is_generated = True
     return pk
 
+def gen_random_private_key(length):
+    """
+    Génère une clé privée "Unidirectionnelle PARFAITE".
+    
+    Correction Finale :
+    - On force le PIC à l'index 0.
+    - Ainsi, quand le joueur clique sur une colonne, c'est CETTE colonne qui reçoit le Pic.
+    - Les compensations sont toujours à DROITE (index +2, +3...).
+    - Jamais de retour en arrière (wrap-around limité à la fin du tableau).
+    
+    Structure Fixe : [Pic, 0, -x, -y, 0, ...]
+    """
+    vector = [0] * length
+    
+    # 1. Le Pilier (Toujours à l'index 0 pour viser juste)
+    peak_val = random.randint(3, 5)
+    peak_idx = 0 # FORCE 0. C'est crucial pour l'intuition "Je clique Ici -> J'agis Ici".
+    vector[peak_idx] = peak_val
+    
+    # 2. Distribution (Strictement à Droite)
+    needed = 1 - peak_val
+    
+    # Options de distance positives uniquement
+    if length <= 8:
+        dist_options = [2, 3] 
+    else:
+        dist_options = [2, 3, 4]
+        
+    while needed != 0:
+        dist = random.choice(dist_options)
+        # On remplit vers la droite
+        target_idx = (peak_idx + dist) % length
+        
+        # Petit garde-fou : Sur un tableau circulaire, faut pas que 'droite' retombe sur 'gauche' trop vite.
+        # Mais avec dist 2/3/4 sur length 8+, on est safe.
+        
+        step = -1
+        if vector[target_idx] > -2:
+            vector[target_idx] += step
+            needed -= step
+            
+    return vector
+
 def get_key_info():
     """
     Génère les structures de données complètes pour les clés (publiques et privées).
@@ -190,12 +233,10 @@ def get_key_info():
         }
         
         sub_pk = pk[index]
-        sub_sk = PREGENERATED_PRIVATE_KEYS[index]
         
-        # Handle dict input for organic keys
-        sk_vector = sub_sk
-        if isinstance(sub_sk, dict):
-            sk_vector = sub_sk['key']
+        # GENERATION PROCEDURALE
+        # Au lieu d'utiliser PREGENERATED_PRIVATE_KEYS, on génère une nouvelle clé valide.
+        sk_vector = gen_random_private_key(index)
         
         result['private_key'][index] = {
             'key': sk_vector,
@@ -220,10 +261,8 @@ def get_key_info():
                 result['public_key'][index]['number'].append(val)
                 
         # Traitement de la Clé Privée
-        # Handle dict input for organic keys (14, 16)
-        private_key_vector = sub_sk
-        if isinstance(sub_sk, dict):
-            private_key_vector = sub_sk['key']
+        # With procedural generation, sk_vector is always a list.
+        private_key_vector = sk_vector
             
         for val in private_key_vector:
             if val > 0:

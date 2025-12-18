@@ -8,13 +8,14 @@ from settings import (
 from cryptris_logic import ternary_to_symbol, gen_public_key, PREGENERATED_PRIVATE_KEYS, REPEAT_GEN_PUBLIC_KEY_LIST
 
 class GameBox:
-    def __init__(self, screen, x, y, width, height, current_length, key_info, my_message, player=True):
+    def __init__(self, screen, x, y, width, height, current_length, key_info, my_message, player=True, use_public=False):
         self.screen = screen
         self.rect = pygame.Rect(x, y, width, height)
         self.current_length = current_length
         self.key_info = key_info
         self.my_message = my_message
         self.player = player
+        self.use_public = use_public
         
         self.colors = PLAYER_BOARD_COLORS if player else IA_BOARD_COLORS
         
@@ -71,10 +72,12 @@ class GameBox:
         # We need to check both message and key values to determine the scale
         # But we haven't created the objects yet. Let's look at the data.
         msg_data = self.my_message
-        if self.player:
-            key_data = self.key_info['private_key'][self.current_length]
+        
+        # Select Key Data based on use_public
+        if self.use_public:
+             key_data = self.key_info['public_key'][self.current_length]
         else:
-            key_data = self.key_info['public_key'][self.current_length]
+             key_data = self.key_info['private_key'][self.current_length]
         
         max_val = 1
         if msg_data['message_number']:
@@ -293,8 +296,9 @@ class GameBox:
             total_mass += max(0, col.value)
             
             # Vérification Critique : Hauteur Absolue > 1
-            # On tolère une hauteur de 1 (bruit)
-            if col.value > 1: 
+            # On tolère une hauteur de 1 (bruit), règle originale du jeu.
+            # CORRECTION : On utilise la valeure absolue pour ne pas ignorer les blocs négatifs !
+            if abs(col.value) > 1: 
                 all_low = False
                 
         if all_low:

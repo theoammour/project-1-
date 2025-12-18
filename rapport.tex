@@ -63,7 +63,11 @@ L'historique des commits du projet peut laisser apparaître les traces d'un seco
 \begin{itemize}
     \item \textbf{Mode Solo (Arcade)} : Le joueur doit nettoyer son écran le plus vite possible.
     \item \textbf{Mode Espion} : Le joueur affronte une IA. Le joueur utilise une clé standard tandis que l'IA utilise une clé personnalisée créée par le joueur.
+    \item \textbf{Configuration Asymétrique} : Une nouveauté de la version 1.7 permet au joueur de choisir, pour lui-même et pour l'IA, d'utiliser soit une \textit{Clé Privée} (vecteur creux, plus simple) soit une \textit{Clé Publique} (vecteur dense, plus difficile). Cela introduit une dimension stratégique et pédagogique supplémentaire.
 \end{itemize}
+
+\subsection{Équité et Robustesse}
+Pour garantir l'équité des parties ("Fairness"), j'ai amélioré le système de génération de puzzles pour assurer que le Joueur et l'IA affrontent exactement le même message chiffré, quel que soit leur choix de clé. De plus, des algorithmes de vérification empêchent la génération de niveaux triviaux (déjà résolus ou vides).
 
 \subsection{Interface Utilisateur}
 L'interface a été soignée pour offrir une expérience fluide :
@@ -77,7 +81,104 @@ L'interface a été soignée pour offrir une expérience fluide :
 \subsection{Gestion des Assets et Robustesse}
 Le jeu intègre désormais un système de chargement d'assets robuste ("Graceful Degradation"). Si des ressources graphiques (images, logos) sont manquantes ou corrompues, le jeu utilise automatiquement des éléments de substitution générés procéduralement (rectangles de couleur, textes) pour garantir que l'application reste fonctionnelle en toutes circonstances.
 
+\section{Difficultés Rencontrées et Solutions Techniques}
+Le développement a été marqué par plusieurs défis algorithmiques majeurs, liés à la nature même des réseaux euclidiens.
+
+\subsection{Le Problème des Boucles Infinies (Infinite Loops)}
+\textbf{Problème :} Lors des tests aux niveaux avancés (grilles de 10 à 16 colonnes), il arrivait fréquemment que le joueur se retrouve bloqué dans une "boucle infinie". En tentant de corriger une colonne A, il modifiait involontairement la colonne voisine B. En corrigeant B, il détruisait à nouveau A. Ce phénomène de dépendance cyclique rendait certains niveaux mathématiquement frustrants, voire impossibles à résoudre pour un humain sans assistance par ordinateur.
+
+\textbf{Solution :} J'ai refondu l'algorithme de génération de clés privées.
+\begin{itemize}
+    \item \textbf{Approche Unidirectionnelle (Queue à Droite)} : J'ai forcé la structure de la clé privée pour qu'elle soit strictement orientée. Le "Pic" (valeur maximale) est toujours placé à l'index 0, et tous les blocs de compensation (valeurs négatives) sont placés à droite (index positifs).
+    \item \textbf{Conséquence} : Cela garantit une propriété de solvabilité linéaire. Le joueur peut résoudre le puzzle de la gauche vers la droite ("Sweep"). En corrigeant la colonne $N$, il repousse les erreurs vers $N+1$, $N+2$, etc., sans jamais perturber les colonnes $0$ à $N-1$ déjà résolues. Cette modification a définitivement éliminé les boucles.
+\end{itemize}
+
+\subsection{Le Bug de la Victoire Immédiate}
+\textbf{Problème :} Le jeu déclarait parfois la victoire alors qu'il restait des blocs à l'écran. L'analyse a révélé que la condition de victoire vérifiait \texttt{valeur > 1}, ignorant les blocs négatifs (valeurs très basses mais visuellement présentes).
+\textbf{Solution :} J'ai corrigé la condition pour utiliser la valeur absolue : \texttt{abs(valeur) <= 1}.
+
+\subsection{Génération de Niveaux Solubles (Reverse Solving)}
+\textbf{Problème :} Générer un puzzle aléatoire par combinaison linéaire ne garantit pas toujours une expérience de jeu fluide.
+\textbf{Solution :} Je suis passé à une méthode d'**Injection de Motifs Sans Chevauchement**. Le générateur place des copies exactes de la clé publique sur la grille vide, en s'assurant qu'elles ne se touchent jamais. Le puzzle devient alors un jeu de reconnaissance de motifs pur, garantissant 100\% de solvabilité sans interférences arithmétiques complexes.
+
+\section{Tests et Validation}
+La validation du projet s'est faite en plusieurs étapes :
+\begin{enumerate}
+    \item \textbf{Tests Unitaires (Algorithmes)} : Vérification des fonctions vectorielles (`sum_vectors`, `modulo`) pour s'assurer que l'arithmétique modulaire (base du chiffrement) était correcte.
+    \item \textbf{Tests d'Intégration (Gameplay)} : Séries de tests manuels sur les niveaux 8, 10, 12, 14 et 16 pour valider la courbe de difficulté.
+    \item \textbf{Validation de la Solvabilité} : Pour chaque modification du générateur de niveau, j'ai simulé des parties pour vérifier qu'il était toujours possible d'atteindre l'état vide (0). La nouvelle méthode par "Injection" valide ce critère par construction.
+\end{enumerate}
+
+\section{Diagrammes et Illustrations}
+Voici un aperçu visuel du jeu final.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/gameplay.png}
+    \caption{Capture d'écran du Plateau de Jeu. À gauche : La clé privée du joueur. Au centre : Le message chiffré.}
+    \label{fig:gameplay}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/victory.png}
+    \caption{Popup de Victoire confirmant que le message a été correctement déchiffré (tous les blocs réduits à 0).}
+    \label{fig:victory}
+\end{figure}
+
+*(Espace réservé pour le Diagramme de Classes UML montrant les relations entre GameScene, GameBox, et SceneManager)*
+
+\section{Perspectives d'Évolution}
+Pour une version 2.0 ("Cryptris Online"), j'envisage :
+\begin{itemize}
+    \item \textbf{Mode Réseau} : Permettre à deux joueurs de s'affronter en temps réel via Sockets Python.
+    \item \textbf{Musique et Son} : Ajouter une ambiance sonore dynamique qui réagit au stress du jeu (hauteur des colonnes).
+    \item \textbf{Version Mobile} : Portage via Kivy ou Pygame Subset for Android pour toucher un public plus large.
+\end{itemize}
+
 \section{Conclusion}
-Ce projet a permis de mettre en pratique des concepts de génie logiciel (architecture MVC, POO) tout en approfondissant la compréhension des mécanismes cryptographiques sous-jacents aux réseaux euclidiens. Le résultat est un jeu fonctionnel, esthétique et éducatif.
+Ce projet a permis de mettre en pratique des concepts de génie logiciel (architecture MVC, POO) tout en approfondissant la compréhension des mécanismes cryptographiques sous-jacents aux réseaux euclidiens. Le résultat est un jeu fonctionnel, esthétique et éducatif, qui réussit le pari de rendre amusante la réduction de réseaux.
+
+\newpage
+\section{Bibliographie / Webographie}
+\begin{itemize}
+    \item \textbf{Inria - Cryptris} : Le jeu original et la documentation scientifique. \url{http://inriamecsci.github.io/cryptris/}
+    \item \textbf{Pygame Documentation} : Référence technique pour le moteur de jeu. \url{https://www.pygame.org/docs/}
+    \item \textbf{Lattice-based Cryptography (Peikert)} : "A Decade of Lattice Cryptography", pour comprendre la théorie mathématique derrière le jeu.
+    \item \textbf{GitLab ESIEA} : Dépôt du projet.
+\end{itemize}
+
+\newpage
+\section{Annexes}
+\subsection{Algorithme de Génération de Clé Privée (Python)}
+\begin{lstlisting}[language=Python, caption=Génération de Clé Unidirectionnelle]
+def gen_random_private_key(length):
+    """
+    Génère une clé privée "Unidirectionnelle PARFAITE".
+    On force le PIC à l'index 0.
+    Structure Fixe : [Pic, 0, -x, -y, 0, ...]
+    """
+    vector = [0] * length
+    
+    # 1. Le Pilier (Toujours à l'index 0)
+    peak_val = random.randint(3, 5)
+    peak_idx = 0 
+    vector[peak_idx] = peak_val
+    
+    # 2. Distribution (Strictement à Droite)
+    needed = 1 - peak_val
+    dist_options = [2, 3, 4] if length > 8 else [2, 3]
+        
+    while needed != 0:
+        dist = random.choice(dist_options)
+        target_idx = (peak_idx + dist) % length
+        
+        step = -1
+        if vector[target_idx] > -2:
+            vector[target_idx] += step
+            needed -= step
+            
+    return vector
+\end{lstlisting}
 
 \end{document}

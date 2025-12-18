@@ -752,9 +752,11 @@ class AboutScene(Scene):
                      self.manager.switch_to(MenuScene())
 
 class KeyCreationScene(Scene):
-    def __init__(self, player_name="Player"):
+    def __init__(self, player_name="Player", player_key_mode="PRIVATE", ai_key_mode="PUBLIC"):
         super().__init__()
         self.player_name = player_name
+        self.player_key_mode = player_key_mode
+        self.ai_key_mode = ai_key_mode
         self.font = pygame.font.SysFont("Arial", 28, bold=True)
         self.small_font = pygame.font.SysFont("Arial", 18)
         self.length = 8
@@ -963,7 +965,13 @@ class KeyCreationScene(Scene):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
                 # Validate Key
-                self.manager.switch_to(GameScene(self.length, player_name=self.player_name, custom_key=self.key_vector))
+                total_mass = sum([abs(x) for x in self.key_vector])
+                if total_mass > 0:
+                    self.manager.switch_to(GameScene(self.length, player_name=self.player_name, custom_key=self.key_vector,
+                                                   player_key_mode=self.player_key_mode,
+                                                   ai_key_mode=self.ai_key_mode))
+                else:
+                    print("Cannot validate empty key")
             elif event.key == pygame.K_ESCAPE:
                 self.manager.switch_to(ConfigScene())
             else:
@@ -974,7 +982,11 @@ class KeyCreationScene(Scene):
             if event.button == 1:
                 # Check Validate button
                  if hasattr(self, 'btn_validate_rect') and self.btn_validate_rect.collidepoint(event.pos):
-                     self.manager.switch_to(GameScene(self.length, player_name=self.player_name, custom_key=self.key_vector))
+                     total_mass = sum([abs(x) for x in self.key_vector])
+                     if total_mass > 0:
+                         self.manager.switch_to(GameScene(self.length, player_name=self.player_name, custom_key=self.key_vector,
+                                                        player_key_mode=self.player_key_mode,
+                                                        ai_key_mode=self.ai_key_mode))
 
 class ConfigScene(Scene):
     def __init__(self):
@@ -1157,7 +1169,9 @@ class ConfigScene(Scene):
                 elif event.key == pygame.K_RETURN:
                     selected = self.lengths[self.selected_length_index]
                     if selected == "CREER CLE":
-                        self.manager.switch_to(KeyCreationScene(self.player_name))
+                        self.manager.switch_to(KeyCreationScene(self.player_name, 
+                                                              player_key_mode=self.player_key_mode,
+                                                              ai_key_mode=self.ai_key_mode))
                     else:
                         self.manager.switch_to(GameScene(selected, self.player_name, 
                                                        player_key_mode=self.player_key_mode,
@@ -1182,7 +1196,9 @@ class ConfigScene(Scene):
                                 # Trigger same logic as ENTER
                                 selected = self.lengths[self.selected_length_index]
                                 if selected == "CREER CLE":
-                                    self.manager.switch_to(KeyCreationScene(self.player_name))
+                                    self.manager.switch_to(KeyCreationScene(self.player_name,
+                                                                          player_key_mode=self.player_key_mode,
+                                                                          ai_key_mode=self.ai_key_mode))
                                 else:
                                     self.manager.switch_to(GameScene(selected, self.player_name, 
                                                                    player_key_mode=self.player_key_mode,
@@ -1301,6 +1317,13 @@ class GameScene(Scene):
         self.player_key_mode = player_key_mode
         self.ai_key_mode = ai_key_mode
         
+        # Failsafe: Validate Custom Key if provided
+        if custom_key:
+             total_mass = sum([abs(x) for x in custom_key])
+             if total_mass == 0:
+                 print("WARNING: Custom Key was empty! Reverting to Standard Mode.")
+                 custom_key = None
+        
         # 1. Player Key Info (Always Standard)
         self.player_key_info = get_key_info()
         
@@ -1355,13 +1378,62 @@ class GameScene(Scene):
                     pk_entry['number'].append(val)
 
         # Generate Puzzles (Messages)
-        # Determine which key to use for Player
-        p_key_type = 'private_key' if self.player_key_mode == "PRIVATE" else 'public_key'
-        self.player_target_message = self.generate_solvable_message(self.current_length, self.player_key_info, p_key_type)
+        # We need a Common Message for both to ensure they have "the same blocks at the bottom".
+        # To ensure solvability for both:
+        # - If ANYONE uses Public Key, we must generate using Public Key (because Public Key lattice is a subset of Private Key lattice).
+        #   Message generated from Public Key can be solved by Private Key.
+        #   Message generated from Private Key might NOT be solvable by Public Key.
+        # - If BOTH use Private Key, we use Private Key generation (cleaner, sparser).
         
-        # Determine which key to use for AI
-        a_key_type = 'private_key' if self.ai_key_mode == "PRIVATE" else 'public_key'
-        self.ai_target_message = self.generate_solvable_message(self.current_length, self.ai_key_info, a_key_type)
+        generation_key_type = 'private_key'
+        if self.player_key_mode == "PUBLIC" or self.ai_key_mode == "PUBLIC":
+            generation_key_type = 'public_key'
+            
+        # Select the Key Info Source to use for generation
+        # It doesn't strictly matter which one if we trust they come from same seed/logic, 
+        # but technically we should use the one corresponding to the generation mode.
+        # Since Player always has 'private_key' populated, and AI has 'public_key' populated correctly...
+        # Let's use AI's info if Public, Player's if Private (just to be safe/consistent).
+        gen_source = self.ai_key_info if generation_key_type == 'public_key' else self.player_key_info
+        
+        # Robust Generation Loop
+        # Ensure we don't get an empty/trivial message
+        valid_message = False
+        attempts = 0
+        common_message = None
+        
+        while not valid_message and attempts < 20:
+            attempts += 1
+            common_message = self.generate_solvable_message(self.current_length, gen_source, generation_key_type)
+            
+            # Check complexity: Sum of absolute values / Max height
+            # We want at least some blocks.
+            max_h = 0
+            total_mass = 0
+            if common_message['message_number']:
+                max_h = max([abs(x) for x in common_message['message_number']])
+                total_mass = sum([abs(x) for x in common_message['message_number']])
+            
+            # Criteria: Max height > 1 (so it's not solved) AND Total mass significant
+            if max_h > 1 and total_mass > 3:
+                valid_message = True
+            else:
+                # Debug
+                # print(f"DEBUG: Rejected trivial message (Attempt {attempts}): {common_message['message_number']}")
+                pass
+                
+        if not valid_message:
+             print("WARNING: Could not generate non-trivial message after 20 attempts. Using last result.")
+
+        self.player_target_message = common_message
+        # We need a deep copy for AI? 
+        # create_a_data_message returns lists, so if GameBox modifies them we might have issues?
+        # GameBox reads them to init columns. It doesn't modify the source dict.
+        # So sharing the reference is fine for initialization.
+        self.ai_target_message = common_message
+        
+        # Debug
+        # print(f"DEBUG: Common Message ({generation_key_type}): {common_message['message_number']}")
         
         # Layout: Player Left, AI Right with Central Gap
         center_width = 300  
@@ -1411,46 +1483,56 @@ class GameScene(Scene):
         self.victory_popup = None
 
     def generate_solvable_message(self, length, key_info_source, key_type='private_key'):
-        # Generate a message that is a linear combination of the PROVIDED key (Private or Public)
+        # NON-OVERLAPPING INJECTION GENERATOR
+        # Guaranteed Solvability + No Infinite Loops + No Arithmetic Interference.
+        # Logic: Place N copies of the key on the board, but ONLY where they don't touch existing blocks.
+        
         key_vector = key_info_source[key_type][length]['key']
-        # ... (rest of generation logic remains roughly the same, operating on key_vector)
-        
-        # Find the "Spike" (Max absolute value index) in the key
-        spike_val = max(key_vector, key=abs)
-        spike_index = key_vector.index(spike_val)
-        
-        # Start with zero vector
         message_vector = [0] * length
         
-        # Balanced steps
-        if length <= 10:
-            steps = 4 
-        elif length <= 12:
-            steps = 6
-        elif length <= 14:
-            steps = 10
-        else: # 16
-            steps = 15 
+        # Difficulty: Number of patterns to inject
+        from settings import REPEAT_CHIFFRE_MSG_LIST
+        # We might want fewer patterns because space is limited if we forbid overlap
+        # Let's try the standard difficulty but give up if we can't fit them.
+        target_steps = REPEAT_CHIFFRE_MSG_LIST.get(length, 5) 
         
-        for _ in range(steps):
-            # Target a random column to "increase"
+        # Identify "Active Footprint" of the key (relative indices where key != 0)
+        # The key is applied by rotating index 0 to target_col.
+        # So if key is [v0, v1, v2...], and we target col C,
+        # v0 lands on C, v1 on C+1, etc.
+        # Active offsets are indices i where key[i] != 0.
+        active_offsets = [i for i, val in enumerate(key_vector) if val != 0]
+        
+        placed_count = 0
+        attempts = 0
+        max_attempts = 100 # Safety break
+        
+        while placed_count < target_steps and attempts < max_attempts:
+            attempts += 1
+            
+            # Pick a candidate column
             target_col = random.randint(0, length - 1)
             
-            # Key rotation logic might differ slightly for Public Keys if we want 'perfect' solvability 
-            # but using the same linear combo logic usually ensures at least one solution exists
-            # because we are constructing the message FROM the key.
+            # CHECK FOR OVERLAP
+            overlap = False
+            for offset in active_offsets:
+                # The board index that would be modified
+                board_idx = (target_col + offset) % length
+                
+                # Check if this index is already occupied (non-zero)
+                if message_vector[board_idx] != 0:
+                    overlap = True
+                    break
             
-            rot = (spike_index - target_col) % length
-            
-            rotated_key = rotate(length, key_vector, rot)
-            
-            # Pick a random direction
-            direction = 1 if random.random() > 0.5 else -1
-            
-            # Add to message
-            weighted_key = mult_vector(direction, rotated_key)
-            message_vector = sum_vectors(message_vector, weighted_key)
-            
+            if not overlap:
+                # NO OVERLAP: We can place the key here!
+                shifted_key = rotate(length, key_vector, target_col)
+                # We ADD the key (Inverse Move)
+                message_vector = sum_vectors(message_vector, shifted_key)
+                placed_count += 1
+                
+        # Result is a board with isolated key patterns.
+        # Solving one pattern never interferes with another.
         return create_a_data_message(message_vector, length)
 
     def on_enter(self):
