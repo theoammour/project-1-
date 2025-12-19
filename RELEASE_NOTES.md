@@ -1,29 +1,23 @@
-# Notes de Version
+# Notes de Version - Cryptris Python
 
-## Version 1.6 - Mise à jour UI et Internationalisation
+## [v1.0.0] - Version Finale (Gold)
+La version 1.0.0 marque l'achèvement du projet pour la soutenance ESIEA.
 
-### Nouvelles Fonctionnalités
-- **Sélection de Langue** : Ajout d'un système de sélection de langue directement depuis le menu principal via des drapeaux cliquables. Langues supportées :
-  - Français (FR)
-  - Anglais (EN)
-  - Néerlandais (NL)
-- **Asset Graphique** : Remplacement du logo "Digital Cuisine" par le logo ESIEA dans l'interface.
+### ✨ Fonctionnalités Terminées
+- **Mode Arcade Complet** : Flux de jeu opérationnel (Config -> Jeu -> Victoire/Défaite).
+- **Chiffrement de Messages** : Possibilité de chiffrer ses propres textes (Algorithme Ternaire LWE).
+- **Intelligence Artificielle** : Adversaire fonctionnel avec stratégie de réduction de réseau.
+- **Localisation** : Traduction intégrale FR/EN/NL.
 
-### Correctifs
-- **Navigation Souris** : Correction d'un bug critique empêchant la navigation dans les menus avec la souris.
-- **Chargement d'Assets** : Amélioration de la robustesse du chargement des images. Le jeu se lance désormais avec des éléments de secours (fallbacks) si certains fichiers graphiques sont manquants ou corrompus.
+### 📚 Documentation
+- **Rapport Académique** : `rapport.tex` complet (V10) inclus dans le dépôt, avec sections techniques approfondies (Maths, Archi, Méthodologie).
+- **Code Source** : Nettoyé, commenté et signé.
 
-### Technique
-- Refactoring du `MenuScene` pour inclure un `LanguageManager`.
-- Mise à jour des scripts de téléchargement d'assets pour inclure les headers User-Agent nécessaires.
+### 🐛 Correctifs Récents
+- Résolution des problèmes de navigation souris dans le menu.
+- Amélioration de la lisibilité des blocs (Code couleur Bleu/Cyan).
+- Correction de la formule mathématique dans le rapport.
 
-## Version 1.7 - Configuration de Clés et Équilibrage
-
-### Nouvelles Fonctionnalités
-- **Configuration Avancée** : Ajout d'une étape de configuration dans le mode Arcade permettant de choisir le type de clé (Privée ou Publique) pour le Joueur et pour l'IA (Adversaire).
-- **Indicateurs Visuels** : Affichage en jeu du type de clé utilisé (CLE PRIV / CLE PUB) avec un code couleur distinct (Cyan / Rose).
-
-### Améliorations de Gameplay
-- **Puzzle Partagé (Fairness)** : Le Joueur et l'Espion (IA) affrontent désormais exactement le même puzzle (message chiffré) pour garantir une équité totale.
-- **Support Clé Publique** : Le jeu supporte désormais correctement l'utilisation de clés publiques pour la résolution, avec une génération de puzzle adaptée (plus dense) mais garantie résoluble.
-- **Robustesse** : Le système de génération de puzzle a été renforcé pour éviter la création de niveaux triviaux (vides ou déjà résolus), assurant un défi constant même avec des configurations aléatoires.
+---
+**Auteur** : Théo Ammour
+**Date** : Décembre 2024

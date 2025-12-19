@@ -1,3 +1,9 @@
+"""
+Cryptris - Implémentation en Python
+Projet ESIEA - Cryptographie Appliquée
+Auteur: Théo Ammour
+Année: 2024-2025
+"""
 import pygame
 import sys
 import os
@@ -23,6 +29,8 @@ class LanguageManager:
         self.translations = {
             "FR": {
                 "ARCADE": "ARCADE",
+                "ENCRYPT_MSG": "CHIFFRER MESSAGE",
+                "ENTER_MSG": "Entrez votre message secret (A-Z) :",
                 "DOCUMENTATION": "DOCUMENTATION",
                 "ABOUT": "A PROPOS",
                 "QUIT": "QUITTER",
@@ -67,10 +75,13 @@ class LanguageManager:
                 "ABOUT_P2_L3": "tout en affrontant une IA qui tente de casser le code par force brute.",
                 "ABOUT_P3_L1": "Au fur et à mesure, votre clé se renforce. Bien qu'elle reste simple à manipuler",
                 "ABOUT_P3_L2": "pour vous, elle devient un véritable obstacle pour l'ordinateur.",
-                "ABOUT_P3_L3": "C'est là toute la puissance de la sécurité asymétrique !"
+                "ABOUT_P3_L3": "C'est là toute la puissance de la sécurité asymétrique !",
+                "MSG_HELP": "A-Z Uniquement. ENTRÉE pour Valider (Vide = Jeu Aléatoire)."
             },
             "EN": {
                 "ARCADE": "ARCADE",
+                "ENCRYPT_MSG": "ENCRYPT MESSAGE",
+                "ENTER_MSG": "Enter your secret message (A-Z):",
                 "DOCUMENTATION": "DOCUMENTATION",
                 "ABOUT": "ABOUT",
                 "QUIT": "QUIT",
@@ -115,10 +126,13 @@ class LanguageManager:
                 "ABOUT_P2_L3": "while facing an AI trying to break the code by brute force.",
                 "ABOUT_P3_L1": "As you progress, your key gets stronger. While it remains easy for you to handle,",
                 "ABOUT_P3_L2": "it becomes a real obstacle for the computer.",
-                "ABOUT_P3_L3": "That is the power of asymmetric security!"
+                "ABOUT_P3_L3": "That is the power of asymmetric security!",
+                "MSG_HELP": "A-Z Only. ENTER to Validate (Empty = Random Game)."
             },
             "NL": {
                 "ARCADE": "ARCADE",
+                "ENCRYPT_MSG": "VERSLEUTEL BERICHT",
+                "ENTER_MSG": "Voer je geheime bericht in (A-Z):",
                 "DOCUMENTATION": "DOCUMENTATIE",
                 "ABOUT": "OVER",
                 "QUIT": "STOPPEN",
@@ -163,7 +177,8 @@ class LanguageManager:
                 "ABOUT_P2_L3": "terwijl hij een AI trotseert die probeert de code te kraken met brute kracht.",
                 "ABOUT_P3_L1": "Naarmate je vordert, wordt je sleutel sterker. Hoewel het voor jou eenvoudig blijft,",
                 "ABOUT_P3_L2": "wordt het een echt obstakel voor de computer.",
-                "ABOUT_P3_L3": "Dat is de kracht van asymmetrische beveiliging!"
+                "ABOUT_P3_L3": "Dat is de kracht van asymmetrische beveiliging!",
+                "MSG_HELP": "Alleen A-Z. ENTER om te bevestigen (Leeg = Willekeurig Spel)."
             }
         }
     
@@ -329,22 +344,12 @@ class MenuScene(Scene):
             title = fallback_font.render("CRYPTRIS", True, (0, 255, 255))
             screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, 150))
 
-        # 2. ESIEA Logo (Top Right)
-        if self.logo_esiea:
-            margin = 30
-            x = SCREEN_WIDTH - self.logo_esiea.get_width() - margin
-            y = margin
-            screen.blit(self.logo_esiea, (x, y))
-
-        # 3. Footer Logos (Bottom Center/Sides)
-        if self.logo_inria and self.logo_digital:
-            margin_bottom = 40
-            spacing = 50
-            total_w = self.logo_inria.get_width() + self.logo_digital.get_width() + spacing
-            start_x = (SCREEN_WIDTH - total_w) // 2
-            y = SCREEN_HEIGHT - self.logo_inria.get_height() - margin_bottom
-            screen.blit(self.logo_digital, (start_x, y))
-            screen.blit(self.logo_inria, (start_x + self.logo_digital.get_width() + spacing, y))
+        # 2. ESIEA Logo (REMOVED FROM TOP RIGHT - OVERWRITTEN BY FOOTER LOGIC)
+        # if self.logo_esiea: ...
+        
+        # 3. Footer Logos (REMOVED REQUEST)
+        # User requested to remove logos from main menu
+        pass
 
         # 4. Language Flags
         flag_y = 300
@@ -423,7 +428,6 @@ class MenuScene(Scene):
     def trigger_menu_action(self):
         key = self.menu_keys[self.selected_index]
         if key == "ARCADE":
-             # Go to Name/Difficulty Config
              self.manager.switch_to(ConfigScene())
         elif key == "DOCUMENTATION":
              self.manager.switch_to(DocumentationScene())
@@ -623,6 +627,18 @@ class AboutScene(Scene):
              # Reuse Logos
              self.logo_inria = pygame.image.load(os.path.join("cryptris", "img", "logo-inria-medium.png")).convert_alpha()
              self.logo_digital = pygame.image.load(os.path.join("cryptris", "img", "logo-digital-cuisine-medium.png")).convert_alpha()
+             
+             # LOAD ESIEA LOGO
+             esiea_path = os.path.join("cryptris", "img", "logo-esiea.png")
+             if os.path.exists(esiea_path):
+                 self.logo_esiea = pygame.image.load(esiea_path).convert_alpha()
+                 # Resize to match height approx 80px
+                 h = 80
+                 w = int(self.logo_esiea.get_width() * (h / self.logo_esiea.get_height()))
+                 self.logo_esiea = pygame.transform.scale(self.logo_esiea, (w, h))
+             else:
+                 self.logo_esiea = None
+                 
         except:
             pass
 
@@ -716,15 +732,20 @@ class AboutScene(Scene):
         footer_y = SCREEN_HEIGHT - 150
         spacing_logos = 60
         
-        if self.logo_inria and self.logo_digital:
-            w_inria = self.logo_inria.get_width()
-            w_digital = self.logo_digital.get_width()
-            total_w = w_inria + spacing_logos + w_digital
-            
-            start_x = (SCREEN_WIDTH - total_w) // 2
-            
-            screen.blit(self.logo_inria, (start_x, footer_y))
-            screen.blit(self.logo_digital, (start_x + w_inria + spacing_logos, footer_y))
+        # Logic to display 2 or 3 logos
+        logos_to_draw = []
+        if self.logo_inria: logos_to_draw.append(self.logo_inria)
+        if hasattr(self, 'logo_esiea') and self.logo_esiea: logos_to_draw.append(self.logo_esiea)
+        if self.logo_digital: logos_to_draw.append(self.logo_digital)
+        
+        if logos_to_draw:
+             total_w = sum(l.get_width() for l in logos_to_draw) + spacing_logos * (len(logos_to_draw) - 1)
+             start_x = (SCREEN_WIDTH - total_w) // 2
+             
+             curr_x = start_x
+             for logo in logos_to_draw:
+                 screen.blit(logo, (curr_x, footer_y))
+                 curr_x += logo.get_width() + spacing_logos
             
         # Back Instruction
         # Back Button
@@ -861,28 +882,33 @@ class KeyCreationScene(Scene):
             self.key_vector[i] = val
 
     def get_strength_info(self):
-        try:
-            rep = REPEAT_GEN_PUBLIC_KEY_LIST.get(self.length, 10)
-        except:
-            rep = 10
-            
-        pk = gen_public_key(self.length, self.key_vector, rep)
-        s = score(pk)
+        # NOUVELLE LOGIQUE : Basée sur la Masse Totale (Somme des blocs)
+        # Plus intuitive pour le joueur : Plus il y a de matière, plus c'est fort.
         
-        if s < 0.5:
+        total_mass = sum([abs(x) for x in self.key_vector])
+        
+        # Seuils calibrés pour une progression satisfaisante
+        if total_mass < 4:
             label = "FAIBLE"
-            color = (255, 50, 50)
-            level_pct = min(1.0, s / 0.5) * 0.33
-        elif s < 1.5:
+            color = (255, 50, 50) # Rouge
+            # 0 à 3 -> 0% à 33%
+            level_pct = max(0.05, total_mass / 4.0 * 0.33)
+            
+        elif total_mass < 12: # Augmenté à 12 pour que "MOYEN" dure un peu
             label = "MOYEN"
-            color = (255, 255, 0)
-            level_pct = 0.33 + min(1.0, (s - 0.5) / 1.0) * 0.33
+            color = (255, 255, 0) # Jaune
+            # 4 à 11 -> 33% à 66%
+            norm = (total_mass - 4) / (12 - 4)
+            level_pct = 0.33 + norm * 0.33
+            
         else:
             label = "FORT"
-            color = (0, 255, 0)
-            level_pct = 0.66 + min(1.0, (s - 1.5) / 1.0) * 0.34
+            color = (0, 255, 0) # Vert
+            # 12+ -> 66% à 100% (Cap à 20 blocs pour 100%)
+            norm = min(1.0, (total_mass - 12) / 8.0)
+            level_pct = 0.66 + norm * 0.34
             
-        return label, color, min(1.0, max(0.05, level_pct))
+        return label, color, min(1.0, level_pct)
 
     def draw(self, screen):
         # Draw Background
@@ -988,9 +1014,12 @@ class KeyCreationScene(Scene):
                                                         player_key_mode=self.player_key_mode,
                                                         ai_key_mode=self.ai_key_mode))
 
+
+
 class ConfigScene(Scene):
-    def __init__(self):
+    def __init__(self, secret_message=""):
         super().__init__()
+        self.secret_message = secret_message # Store custom message
         self.font = pygame.font.SysFont("Arial", 48)
         self.small_font = pygame.font.SysFont("Arial", 24)
         self.selected_length_index = 0
@@ -1033,6 +1062,31 @@ class ConfigScene(Scene):
             instr = self.small_font.render(LANG_MGR.get("CONFIRM"), True, (150, 150, 150))
             screen.blit(instr, (SCREEN_WIDTH//2 - instr.get_width()//2, 400))
             
+        elif self.state == "MESSAGE_INPUT":
+            # Message Input UI (Similar to MessageInputScene but integrated)
+            t = self.font.render(LANG_MGR.get("ENCRYPT_MSG"), True, (0, 255, 255))
+            screen.blit(t, (SCREEN_WIDTH//2 - t.get_width()//2, 100))
+            
+            i = self.small_font.render(LANG_MGR.get("ENTER_MSG"), True, (200, 200, 200))
+            screen.blit(i, (SCREEN_WIDTH//2 - i.get_width()//2, 200))
+            
+            # Input Box
+            pygame.draw.rect(screen, (50, 50, 50), (SCREEN_WIDTH//2 - 400, 300, 800, 60))
+            pygame.draw.rect(screen, (0, 255, 255), (SCREEN_WIDTH//2 - 400, 300, 800, 60), 2)
+            
+            # Text
+            txt_surf = self.small_font.render(self.secret_message, True, (255, 255, 255))
+            screen.blit(txt_surf, (SCREEN_WIDTH//2 - 390, 315))
+            
+            # Blink Cursor
+            if (pygame.time.get_ticks() // 500) % 2 == 0:
+                cursor_x = SCREEN_WIDTH//2 - 390 + txt_surf.get_width()
+                pygame.draw.line(screen, (255, 255, 255), (cursor_x, 310), (cursor_x, 350), 2)
+                
+            # Info
+            info = self.small_font.render(LANG_MGR.get("MSG_HELP"), True, (100, 100, 100))
+            screen.blit(info, (SCREEN_WIDTH//2 - info.get_width()//2, 500))
+
         elif self.state == "KEY_SELECT":
             # Key Selection UI
             start_y = 250
@@ -1135,7 +1189,7 @@ class ConfigScene(Scene):
                 if event.key == pygame.K_RETURN:
                     if self.player_name.strip() == "":
                         self.player_name = "Player"
-                    self.state = "KEY_SELECT" # Next State
+                    self.state = "MESSAGE_INPUT" # Go to Message Input first
                 elif event.key == pygame.K_ESCAPE:
                     self.manager.switch_to(MenuScene())
                 elif event.key == pygame.K_BACKSPACE:
@@ -1145,6 +1199,19 @@ class ConfigScene(Scene):
                     if len(self.player_name) < 12 and event.unicode.isprintable():
                         self.player_name += event.unicode
                         
+                        
+            elif self.state == "MESSAGE_INPUT":
+                if event.key == pygame.K_RETURN:
+                    self.state = "KEY_SELECT" # Next state
+                elif event.key == pygame.K_ESCAPE:
+                    self.state = "NAME_INPUT"
+                elif event.key == pygame.K_BACKSPACE:
+                    self.secret_message = self.secret_message[:-1]
+                else:
+                    if event.unicode.isalpha() or event.unicode == ' ':
+                         if len(self.secret_message) < 50:
+                            self.secret_message += event.unicode.upper()
+
             elif self.state == "KEY_SELECT":
                 if event.key == pygame.K_UP or event.key == pygame.K_DOWN:
                     self.key_config_index = 1 - self.key_config_index # Toggle 0 <-> 1
@@ -1159,7 +1226,7 @@ class ConfigScene(Scene):
                     self.state = "DIFFICULTY_SELECT"
                     
                 elif event.key == pygame.K_ESCAPE:
-                    self.state = "NAME_INPUT"
+                    self.state = "MESSAGE_INPUT"
 
             elif self.state == "DIFFICULTY_SELECT":
                 if event.key == pygame.K_UP:
@@ -1175,7 +1242,8 @@ class ConfigScene(Scene):
                     else:
                         self.manager.switch_to(GameScene(selected, self.player_name, 
                                                        player_key_mode=self.player_key_mode,
-                                                       ai_key_mode=self.ai_key_mode))
+                                                       ai_key_mode=self.ai_key_mode,
+                                                       secret_message=self.secret_message))
                 elif event.key == pygame.K_ESCAPE:
                     self.state = "KEY_SELECT"
                     
@@ -1310,7 +1378,7 @@ class VictoryPopup:
                     self.on_next()
 
 class GameScene(Scene):
-    def __init__(self, length=MIN_BOARD_LENGTH, player_name="Player", custom_key=None, player_key_mode="PRIVATE", ai_key_mode="PUBLIC"):
+    def __init__(self, length=MIN_BOARD_LENGTH, player_name="Player", custom_key=None, player_key_mode="PRIVATE", ai_key_mode="PUBLIC", secret_message=""):
         super().__init__()
         self.current_length = length
         self.player_name = player_name
@@ -1385,45 +1453,70 @@ class GameScene(Scene):
         #   Message generated from Private Key might NOT be solvable by Public Key.
         # - If BOTH use Private Key, we use Private Key generation (cleaner, sparser).
         
-        generation_key_type = 'private_key'
-        if self.player_key_mode == "PUBLIC" or self.ai_key_mode == "PUBLIC":
-            generation_key_type = 'public_key'
-            
-        # Select the Key Info Source to use for generation
-        # It doesn't strictly matter which one if we trust they come from same seed/logic, 
-        # but technically we should use the one corresponding to the generation mode.
-        # Since Player always has 'private_key' populated, and AI has 'public_key' populated correctly...
-        # Let's use AI's info if Public, Player's if Private (just to be safe/consistent).
-        gen_source = self.ai_key_info if generation_key_type == 'public_key' else self.player_key_info
-        
-        # Robust Generation Loop
-        # Ensure we don't get an empty/trivial message
-        valid_message = False
-        attempts = 0
         common_message = None
-        
-        while not valid_message and attempts < 20:
-            attempts += 1
-            common_message = self.generate_solvable_message(self.current_length, gen_source, generation_key_type)
+        self.secret_message_text = secret_message # Store for victory display
+
+        if secret_message and secret_message.strip():
+            # CUSTOM MESSAGE MODE
+            # Encrypt the message using SIMPLE ENCODING (1 char = 1 block)
+            from cryptris_logic import encrypt_simple_message
             
-            # Check complexity: Sum of absolute values / Max height
-            # We want at least some blocks.
-            max_h = 0
-            total_mass = 0
-            if common_message['message_number']:
-                max_h = max([abs(x) for x in common_message['message_number']])
-                total_mass = sum([abs(x) for x in common_message['message_number']])
-            
-            # Criteria: Max height > 1 (so it's not solved) AND Total mass significant
-            if max_h > 1 and total_mass > 3:
-                valid_message = True
+            # Determine which key to use for encryption
+            if self.player_key_mode == "PUBLIC" or self.ai_key_mode == "PUBLIC":
+                 # Use public key for encryption
+                 encryption_key = self.ai_key_info['public_key'][self.current_length]['key']
             else:
-                # Debug
-                # print(f"DEBUG: Rejected trivial message (Attempt {attempts}): {common_message['message_number']}")
-                pass
+                 # Use private key for encryption
+                 try:
+                     encryption_key = self.player_key_info['private_key'][self.current_length]['key']
+                 except:
+                     # Fallback to AI's private key if player key structure differs
+                     encryption_key = self.ai_key_info['private_key'][self.current_length]['key']
+            
+            encrypted_vector = encrypt_simple_message(secret_message, encryption_key, self.current_length)
+            common_message = create_a_data_message(encrypted_vector, self.current_length)
+            
+        else:
+            # RANDOM GENERATION MODE
+
+            if self.player_key_mode == "PUBLIC" or self.ai_key_mode == "PUBLIC":
+                generation_key_type = 'public_key'
                 
-        if not valid_message:
-             print("WARNING: Could not generate non-trivial message after 20 attempts. Using last result.")
+            # Select the Key Info Source to use for generation
+            # It doesn't strictly matter which one if we trust they come from same seed/logic, 
+            # but technically we should use the one corresponding to the generation mode.
+            # Since Player always has 'private_key' populated, and AI has 'public_key' populated correctly...
+            # Let's use AI's info if Public, Player's if Private (just to be safe/consistent).
+            gen_source = self.ai_key_info if generation_key_type == 'public_key' else self.player_key_info
+            
+            # Robust Generation Loop
+            # Ensure we don't get an empty/trivial message
+            valid_message = False
+            attempts = 0
+            common_message = None
+            
+            while not valid_message and attempts < 20:
+                attempts += 1
+                common_message = self.generate_solvable_message(self.current_length, gen_source, generation_key_type)
+                
+                # Check complexity: Sum of absolute values / Max height
+                # We want at least some blocks.
+                max_h = 0
+                total_mass = 0
+                if common_message['message_number']:
+                    max_h = max([abs(x) for x in common_message['message_number']])
+                    total_mass = sum([abs(x) for x in common_message['message_number']])
+                
+                # Criteria: Max height > 1 (so it's not solved) AND Total mass significant
+                if max_h > 1 and total_mass > 3:
+                    valid_message = True
+                else:
+                    # Debug
+                    # print(f"DEBUG: Rejected trivial message (Attempt {attempts}): {common_message['message_number']}")
+                    pass
+                    
+            if not valid_message:
+                 print("WARNING: Could not generate non-trivial message after 20 attempts. Using last result.")
 
         self.player_target_message = common_message
         # We need a deep copy for AI? 
@@ -1513,13 +1606,10 @@ class GameScene(Scene):
             # Pick a candidate column
             target_col = random.randint(0, length - 1)
             
-            # CHECK FOR OVERLAP
+            # CHECK FOR OVERLAP (Restored for solvability clarity)
             overlap = False
             for offset in active_offsets:
-                # The board index that would be modified
                 board_idx = (target_col + offset) % length
-                
-                # Check if this index is already occupied (non-zero)
                 if message_vector[board_idx] != 0:
                     overlap = True
                     break
@@ -1579,10 +1669,16 @@ class GameScene(Scene):
             self.game_over_color = (0, 255, 0)
             
             # Trigger Popup
+            # Trigger Popup
             if self.victory_popup is None:
-                # Generate random hex code or use level info
-                code = f"{random.randint(10,99)} A{random.randint(1,9)} F{random.randint(1,9)}"
-                self.victory_popup = VictoryPopup(SCREEN_WIDTH, SCREEN_HEIGHT, code, self.go_to_menu, self.go_to_next)
+                decoded_msg = ""
+                if hasattr(self, 'secret_message_text') and self.secret_message_text:
+                    decoded_msg = self.secret_message_text.upper()
+                else:
+                    # Generate random hex code or decode board
+                    decoded_msg = f"{random.randint(10,99)} A{random.randint(1,9)} F{random.randint(1,9)}"
+                
+                self.victory_popup = VictoryPopup(SCREEN_WIDTH, SCREEN_HEIGHT, decoded_msg, self.go_to_menu, self.go_to_next)
 
         elif status == "LOSS":
             self.game_over = True

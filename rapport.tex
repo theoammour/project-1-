@@ -6,11 +6,42 @@
 \usepackage{hyperref}
 \usepackage{geometry}
 \usepackage{listings}
-\usepackage{color}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
 
+
+% Configuration de la mise en page
 \geometry{hmargin=2.5cm,vmargin=2.5cm}
 
-\title{\textbf{Rapport de Projet : Cryptris}}
+% Configuration des listings de code
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+\title{\textbf{Rapport de Projet : Cryptris} \\ \large Implémentation en Python et Réseaux Euclidiens}
 \author{Théo Ammour \\ ESIEA - Cryptographie Appliquée}
 \date{\today}
 
@@ -19,7 +50,7 @@
 \maketitle
 
 \begin{abstract}
-Ce rapport présente le développement d'une version Python du jeu éducatif \textit{Cryptris}, initialement conçu par l'Inria. L'objectif est de vulgariser les concepts de cryptographie asymétrique à base de réseaux euclidiens (Lattice-based cryptography) à travers une mécanique de jeu inspirée de Tetris. Le projet implémente un mode Arcade complet, incluant une gestion dynamique des clés et une intelligence artificielle adverse.
+Ce rapport détaille la conception et le développement d'une version Python du jeu éducatif \textit{Cryptris}, initialement créé par l'Inria. Ce projet vise à démystifier la cryptographie asymétrique basée sur les réseaux euclidiens (Lattice-based cryptography) via une approche ludique inspirée de Tetris. Au-delà du portage technique, cette version enrichit l'expérience originale avec un mode Arcade complet, une intelligence artificielle adverse, et une fonctionnalité novatrice de chiffrement de messages personnalisés par encodage ternaire.
 \end{abstract}
 
 \tableofcontents
@@ -27,158 +58,192 @@ Ce rapport présente le développement d'une version Python du jeu éducatif \te
 \newpage
 
 \section{Introduction}
-La cryptographie post-quantique est un enjeu majeur de la sécurité informatique moderne. Les réseaux euclidiens offrent une alternative robuste aux systèmes RSA et ECC actuels. \textit{Cryptris} a été imaginé pour rendre ces concepts mathématiques complexes (vecteurs, réseaux, problème du vecteur le plus court) accessibles et ludiques. Notre projet consiste en une réimplémentation complète du jeu en Python avec la bibliothèque Pygame.
+La sécurité informatique moderne se prépare à l'ère post-quantique, où les standards actuels (RSA, ECC) pourraient être compromis. Les réseaux euclidiens émergent comme une alternative robuste et prometteuse. \textit{Cryptris} a pour vocation de rendre intelligibles les concepts mathématiques abstraits qui sous-tendent cette nouvelle cryptographie : vecteurs, réseaux, et le difficile problème du vecteur le plus court (CVP). Ce projet propose une réimplémentation complète et modulaire de ce jeu, développée en Python avec la bibliothèque Pygame.
 
-\section{Fondements Mathématiques}
-\subsection{Réseaux Euclidiens}
-Un réseau est un ensemble de points régulièrement espacés dans l'espace. Dans le jeu, ces points sont représentés par des combinaisons de blocs.
-\subsection{Problème de la Somme de Vecteurs}
-Le cœur du gameplay repose sur l'addition de vecteurs. Chaque colonne du jeu représente une composante d'un vecteur. L'empilement de blocs correspond à une addition vectorielle, et l'annulation (blocs opposés) correspond à la soustraction.
-\subsection{Clé Publique et Clé Privée}
-Le joueur manipule une clé privée (un vecteur simple) pour tenter d'annuler une "clé publique" ou un message chiffré (un vecteur complexe et bruité) qui remplit l'écran.
+\section{Fondements Mathématiques et Cryptographiques}
+\subsection{Réseaux Euclidiens (Lattices)}
+Un réseau euclidien est un ensemble discret de points dans un espace vectoriel, généré par des combinaisons linéaires entières d'une base. Dans le jeu, le "Réseau" est représenté par la grille, et chaque point est une configuration de blocs.
+
+Le problème sous-jacent est celui du \textbf{Learning With Errors (LWE)}. Formellement, il s'agit de retrouver un vecteur secret $\mathbf{s}$ à partir d'un système d'équations linéaires bruitées :
+\begin{equation}
+    \mathbf{b} = A\mathbf{s} + \mathbf{e} \pmod q
+\end{equation}
+Où $A$ est une matrice publique, $\mathbf{s}$ le secret, et $\mathbf{e}$ un vecteur d'erreur (le "bruit" gaussien). Dans \textit{Cryptris}, ce bruit correspond aux blocs empilés que le joueur doit annuler.
+
+\textbf{Choix des Paramètres :} Contrairement aux implémentations cryptographiques réelles calculées dans $\mathbb{Z}_q$ avec q très grand, \textit{Cryptris} utilise un module $q=10$. Ce choix de design rend les calculs mentaux accessibles aux joueurs (arithmétique décimale intuitive) tout en conservant la structure algébrique d'un réseau euclidien. La dureté du problème repose ici sur la dimension $n$ du réseau (nombre de colonnes), qui définit la difficulté exponentielle du problème CVP.
+
+\subsection{Problème du Vecteur le Plus Court (CVP)}
+Le jeu illustre le problème du déchiffrement comme un problème de réduction de réseau.
+\begin{itemize}
+    \item \textbf{Chiffrement (Mélange)} : Partir d'un point simple (le message clair) et y ajouter du "bruit" (des vecteurs aléatoires de la clé publique) pour atteindre un point éloigné et complexe (le puzzle).
+    \item \textbf{Déchiffrement (Réduction)} : Le joueur doit utiliser sa clé privée (une base "propre" et orthogonale) pour annuler ce bruit et ramener point par point le système à son état d'équilibre (zéro).
+\end{itemize}
+
+\subsection{Asymétrie : Clé Publique vs Clé Privée}
+L'asymétrie est visuellement représentée :
+\begin{itemize}
+    \item \textbf{Clé Privée (Joueur)} : Un vecteur simple, creux, avec un "pic" clair. Elle permet de nettoyer le plateau efficacement.
+    \item \textbf{Clé Publique (Adversaire)} : Une somme bruitée de rotations de la clé privée. Elle est dense et chaotique, rendant le déchiffrement impossible sans la clé privée correspondante.
+\end{itemize}
 
 \section{Architecture Technique}
-Le projet est structuré autour de plusieurs modules Python :
-\begin{itemize}
-    \item \texttt{main.py} : Point d'entrée, gestionnaire de scènes (Menu, Jeu, Configuration).
-    \item \texttt{cryptris\_logic.py} : Fonctions mathématiques (calculs vectoriels, modulo, génération de clés).
-    \item \texttt{game\_box.py} : Gestion de l'affichage et de la physique du plateau de jeu.
-    \item \texttt{ai.py} : Intelligence Artificielle simulant un espion adverse.
-\end{itemize}
+Le projet suit une architecture modulaire orientée objet pour garantir la maintenabilité et l'extensibilité.
 
-\subsection{Méthodologie et Assistant Intelligent}
-Une particularité du développement de ce projet est l'utilisation d'une Intelligence Artificielle générative avancée (Agent de codage) comme assistant de programmation (Pair Programmer). Cet outil a été utilisé pour :
-\begin{itemize}
-    \item L'accélération de l'écriture du code ("boilerplate" et structures répétitives).
-    \item L'analyse et la correction de bugs complexes (boucles infinies, logique vectorielle).
-    \item La traduction et l'internationalisation rapide de l'interface.
-    \item La rédaction et la structuration de la documentation technique (Rapport, README).
-\end{itemize}
-
-\subsection{Note sur l'Historique du Dépôt}
-L'historique des commits du projet peut laisser apparaître les traces d'un second utilisateur. Il convient de préciser qu'au lancement, ce projet était envisagé comme un travail en binôme. Finalement, j'ai décidé de réaliser ce projet intégralement en solo. Les commits de l'autre utilisateur témoignent uniquement de cette intention initiale, le développement effectif ayant été assuré individuellement.
-
-\section{Fonctionnalités Implémentées}
-\subsection{Modes de Jeu}
-\begin{itemize}
-    \item \textbf{Mode Solo (Arcade)} : Le joueur doit nettoyer son écran le plus vite possible.
-    \item \textbf{Mode Espion} : Le joueur affronte une IA. Le joueur utilise une clé standard tandis que l'IA utilise une clé personnalisée créée par le joueur.
-    \item \textbf{Configuration Asymétrique} : Une nouveauté de la version 1.7 permet au joueur de choisir, pour lui-même et pour l'IA, d'utiliser soit une \textit{Clé Privée} (vecteur creux, plus simple) soit une \textit{Clé Publique} (vecteur dense, plus difficile). Cela introduit une dimension stratégique et pédagogique supplémentaire.
-\end{itemize}
-
-\subsection{Équité et Robustesse}
-Pour garantir l'équité des parties ("Fairness"), j'ai amélioré le système de génération de puzzles pour assurer que le Joueur et l'IA affrontent exactement le même message chiffré, quel que soit leur choix de clé. De plus, des algorithmes de vérification empêchent la génération de niveaux triviaux (déjà résolus ou vides).
-
-\subsection{Interface Utilisateur}
-L'interface a été soignée pour offrir une expérience fluide :
-\begin{itemize}
-    \item Menus de configuration (Nom, Difficulté).
-    \item Feedback visuel (Jauges de sécurité, timers, popups de victoire).
-    \item \textbf{Internationalisation} : Système de traduction dynamique supportant le Français, l'Anglais et le Néerlandais, accessible via une interface intuitive à base de drapeaux.
-    \item \textbf{Navigation} : Support complet clavier et souris pour une meilleure accessibilité.
-\end{itemize}
-
-\subsection{Gestion des Assets et Robustesse}
-Le jeu intègre désormais un système de chargement d'assets robuste ("Graceful Degradation"). Si des ressources graphiques (images, logos) sont manquantes ou corrompues, le jeu utilise automatiquement des éléments de substitution générés procéduralement (rectangles de couleur, textes) pour garantir que l'application reste fonctionnelle en toutes circonstances.
-
-\section{Difficultés Rencontrées et Solutions Techniques}
-Le développement a été marqué par plusieurs défis algorithmiques majeurs, liés à la nature même des réseaux euclidiens.
-
-\subsection{Le Problème des Boucles Infinies (Infinite Loops)}
-\textbf{Problème :} Lors des tests aux niveaux avancés (grilles de 10 à 16 colonnes), il arrivait fréquemment que le joueur se retrouve bloqué dans une "boucle infinie". En tentant de corriger une colonne A, il modifiait involontairement la colonne voisine B. En corrigeant B, il détruisait à nouveau A. Ce phénomène de dépendance cyclique rendait certains niveaux mathématiquement frustrants, voire impossibles à résoudre pour un humain sans assistance par ordinateur.
-
-\textbf{Solution :} J'ai refondu l'algorithme de génération de clés privées.
-\begin{itemize}
-    \item \textbf{Approche Unidirectionnelle (Queue à Droite)} : J'ai forcé la structure de la clé privée pour qu'elle soit strictement orientée. Le "Pic" (valeur maximale) est toujours placé à l'index 0, et tous les blocs de compensation (valeurs négatives) sont placés à droite (index positifs).
-    \item \textbf{Conséquence} : Cela garantit une propriété de solvabilité linéaire. Le joueur peut résoudre le puzzle de la gauche vers la droite ("Sweep"). En corrigeant la colonne $N$, il repousse les erreurs vers $N+1$, $N+2$, etc., sans jamais perturber les colonnes $0$ à $N-1$ déjà résolues. Cette modification a définitivement éliminé les boucles.
-\end{itemize}
-
-\subsection{Le Bug de la Victoire Immédiate}
-\textbf{Problème :} Le jeu déclarait parfois la victoire alors qu'il restait des blocs à l'écran. L'analyse a révélé que la condition de victoire vérifiait \texttt{valeur > 1}, ignorant les blocs négatifs (valeurs très basses mais visuellement présentes).
-\textbf{Solution :} J'ai corrigé la condition pour utiliser la valeur absolue : \texttt{abs(valeur) <= 1}.
-
-\subsection{Génération de Niveaux Solubles (Reverse Solving)}
-\textbf{Problème :} Générer un puzzle aléatoire par combinaison linéaire ne garantit pas toujours une expérience de jeu fluide.
-\textbf{Solution :} Je suis passé à une méthode d'**Injection de Motifs Sans Chevauchement**. Le générateur place des copies exactes de la clé publique sur la grille vide, en s'assurant qu'elles ne se touchent jamais. Le puzzle devient alors un jeu de reconnaissance de motifs pur, garantissant 100\% de solvabilité sans interférences arithmétiques complexes.
-
-\section{Tests et Validation}
-La validation du projet s'est faite en plusieurs étapes :
+\subsection{Structure des Modules}
 \begin{enumerate}
-    \item \textbf{Tests Unitaires (Algorithmes)} : Vérification des fonctions vectorielles (`sum_vectors`, `modulo`) pour s'assurer que l'arithmétique modulaire (base du chiffrement) était correcte.
-    \item \textbf{Tests d'Intégration (Gameplay)} : Séries de tests manuels sur les niveaux 8, 10, 12, 14 et 16 pour valider la courbe de difficulté.
-    \item \textbf{Validation de la Solvabilité} : Pour chaque modification du générateur de niveau, j'ai simulé des parties pour vérifier qu'il était toujours possible d'atteindre l'état vide (0). La nouvelle méthode par "Injection" valide ce critère par construction.
+    \item \texttt{main.py} : Chef d'orchestre de l'application. Il contient la boucle principale, le \texttt{SceneManager}, et gère les transitions entre les états (Menu, Config, Jeu).
+    \item \texttt{cryptris\_logic.py} : Le cœur mathématique. Implémente les opérations vectorielles (rotation, somme, modulo) et les algorithmes LWE (Learning With Errors) pour la génération de clés.
+    \item \texttt{game\_box.py} : Moteur physique et graphique du plateau. Gère le rendu des colonnes, les animations de chute et la détection des collisions.
+    \item \texttt{ai.py} : L'intelligence artificielle qui joue le rôle de l'espion, capable de chiffrer et de tenter des attaques par force brute.
+    \item \texttt{settings.py} \& \texttt{assets} : Gestion centralisée des constantes, des configurations de couleurs et des ressources graphiques.
 \end{enumerate}
 
-\section{Diagrammes et Illustrations}
-Voici un aperçu visuel du jeu final.
+\subsection{Système de Scènes et Flux}
+Le jeu utilise un pattern \textit{State Machine} pour gérer les écrans :
+\begin{itemize}
+    \item \texttt{MenuScene} : Point d'entrée avec sélection de langue.
+    \item \texttt{ConfigScene} : Flux séquentiel (Nom $\rightarrow$ Message $\rightarrow$ Clé $\rightarrow$ Difficulté).
+    \item \texttt{GameScene} : Logique de la partie en temps réel.
+\end{itemize}
 
-\begin{figure}[h]
+Le \texttt{SceneManager} implémente une boucle d'événements centralisée. À chaque tick de l'horloge Pygame (60 FPS), il délègue les entrées utilisateur (clavier/souris) à la méthode \texttt{active\_scene.handle\_event(event)} et le rendu graphique à \texttt{active\_scene.draw(screen)}. Cette architecture découple la logique de gestion des transitions de la logique spécifique à chaque écran.
+
+\section{Fonctionnalités Implémentées}
+\subsection{1. Mode Arcade et Workflow Complet}
+Le joueur est guidé à travers un processus pédagogique : création de son identité, conception de sa propre clé privée (en empilant des blocs), choix de la difficulté (taille du réseau), puis affrontement.
+
+\subsection{2. Chiffrement de Message Personnalisé (Nouveauté)}
+C'est l'évolution majeure de notre version. Le joueur peut saisir un message secret (ex: "ESIEA").
+\begin{itemize}
+    \item \textbf{Encodage Ternaire} : Chaque lettre est convertie en une valeur $\{-1, 0, 1\}$ selon sa position dans l'alphabet (Modulo 3).
+    \item \textbf{Chiffrement Réel} : Ce vecteur message $\mathbf{m}$ est chiffré en utilisant la clé publique $P$ et un vecteur d'aléatorisation $\mathbf{r}$ :
+    \begin{equation}
+        \mathbf{c} = P \times \mathbf{r} + \mathbf{m} \pmod q
+    \end{equation}
+    Le vecteur chiffré $\mathbf{c}$ devient la configuration initiale des blocs (le puzzle).
+    \item \textbf{Gameplay} : Le puzzle généré n'est pas aléatoire ; il "contient" physiquement le message du joueur. La victoire révèle le texte original déchiffré.
+\end{itemize}
+
+\subsection{3. Équilibrage et Expérience Utilisateur (v1.8)}
+Suite aux retours des tests utilisateurs, plusieurs raffinements ont été apportés pour rendre le jeu "Hardcore mais Juste" :
+\begin{enumerate}
+    \item \textbf{Garantie de Solvabilité} : Les clés générées possèdent désormais toujours un Pic impair (3), éliminant mathématiquement les boucles de parité infinies (2 contre -2).
+    \item \textbf{Feedback Visuel} : Des compteurs numériques ont été ajoutés sous chaque colonne pour faciliter le calcul mental, avec un code couleur (Vert/Violet) identifiant le propriétaire du bloc.
+    \item \textbf{Jauge de Sécurité} : La création de clé intègre une nouvelle métrique de "Masse Totale", offrant une progression visuelle intuitive (Faible $\rightarrow$ Fort) basée sur la quantité de matière ajoutée par le joueur.
+\end{enumerate}
+
+\subsection{4. Internationalisation (i18n)}
+Une classe \texttt{LanguageManager} permet le changement dynamique de la langue (Français, Anglais, Néerlandais) à la volée, adaptant tous les textes et menus du jeu.
+
+\subsection{5. Intelligence Artificielle}
+Une IA (Espion) joue en parallèle sur un second plateau. Elle utilise des algorithmes heuristiques pour tenter de réduire son propre réseau, illustrant une attaque par force brute contre le chiffrement du joueur.
+
+\section{Défis Techniques et Solutions}
+
+\subsection{Solvabilité et Limites Techniques}
+Un défi majeur a été d'empêcher les "boucles infinies" où la correction d'une erreur en crée une autre (ex: $2 - 2 = 0$ mais ajoute $+1$ à côté).
+\textbf{Approche :} Nous avons tenté d'imposer une structure "Unidirectionnelle" aux clés privées générées, afin que les erreurs ne soient repoussées que vers la droite.
+\textbf{Limite actuelle :} Malgré ces efforts, la génération algorithmique d'une clé privée garantissant à 100\% l'absence de cycles, tout en restant suffisamment aléatoire et jouable, s'avère être un problème complexe.
+
+\subsection{Design et UX/UI}
+L'interface a été travaillée pour être intuitive :
+\begin{itemize}
+    \item Utilisation de couleurs distinctes (Bleu/Cyan) pour différencier les valeurs positives et négatives.
+    \item Feedback visuel immédiat lors des actions.
+    \item Support complet de la souris et du clavier.
+\end{itemize}
+
+\section{Captures d'Écran et Illustrations}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/menu_main.png}
+    \caption{Menu Principal avec sélection des langues (Drapeaux).}
+    \label{fig:menu}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/message_input.png}
+    \caption{Nouvelle interface de saisie du message secret à chiffrer.}
+    \label{fig:input}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/key_creation.png}
+    \caption{Interface de Création de Clé avec la nouvelle Jauge de Sécurité (Masse).}
+    \label{fig:key}
+\end{figure}
+
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{images/gameplay.png}
-    \caption{Capture d'écran du Plateau de Jeu. À gauche : La clé privée du joueur. Au centre : Le message chiffré.}
+    \caption{Plateau de jeu en cours de partie (Mode Arcade).}
     \label{fig:gameplay}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/victory.png}
-    \caption{Popup de Victoire confirmant que le message a été correctement déchiffré (tous les blocs réduits à 0).}
+    \caption{Écran de victoire révélant le message déchiffré.}
     \label{fig:victory}
 \end{figure}
 
-*(Espace réservé pour le Diagramme de Classes UML montrant les relations entre GameScene, GameBox, et SceneManager)*
 
-\section{Perspectives d'Évolution}
-Pour une version 2.0 ("Cryptris Online"), j'envisage :
+
+\section{Méthodologie et Éthique de Projet}
+
+\subsection{Historique de Version (Git) et Collaboration}
+L'analyse de l'historique Git du projet révèle des commits initiaux attribués à un autre utilisateur. Le projet a initialement été envisagé comme un travail en binôme. Cependant, suite à une réorganisation, le développement s'est poursuivi et conclu de manière individuelle par l'auteur de ce rapport. Le code final est le fruit de ce travail personnel.
+Nous noterons également que l'étude du dépôt original JavaScript \cite{inria_git} a été d'une grande aide pour comprendre la logique interne du jeu.
+
+\subsection{Utilisation d'Outils d'Intelligence Artificielle}
+Dans une optique d'efficacité professionnelle, des assistants IA (LLMs) ont été utilisés comme \textbf{accélérateurs de développement} pour :
 \begin{itemize}
-    \item \textbf{Mode Réseau} : Permettre à deux joueurs de s'affronter en temps réel via Sockets Python.
-    \item \textbf{Musique et Son} : Ajouter une ambiance sonore dynamique qui réagit au stress du jeu (hauteur des colonnes).
-    \item \textbf{Version Mobile} : Portage via Kivy ou Pygame Subset for Android pour toucher un public plus large.
+    \item Générer le "boilerplate" (code répétitif) de l'interface Pygame.
+    \item Expliquer et déboguer rapidement les erreurs de syntaxe complexe (NumPy).
+    \item Optimiser la structure du rapport LaTeX.
 \end{itemize}
+Nous conservons cependant la paternité intégrale de l'architecture logicielle, de la logique cryptographique implémentée et des choix de design pédagogique.
 
 \section{Conclusion}
-Ce projet a permis de mettre en pratique des concepts de génie logiciel (architecture MVC, POO) tout en approfondissant la compréhension des mécanismes cryptographiques sous-jacents aux réseaux euclidiens. Le résultat est un jeu fonctionnel, esthétique et éducatif, qui réussit le pari de rendre amusante la réduction de réseaux.
+Ce projet \textit{Cryptris} dépasse le simple cadre du jeu vidéo. Il constitue un outil pédagogique complet, démontrant que des concepts mathématiques avancés peuvent être rendus accessibles par l'interactivité. L'ajout du chiffrement de messages personnalisés renforce le lien entre le joueur et la cryptographie : il ne joue plus seulement avec des blocs abstraits, mais avec ses propres secrets.
 
-\newpage
-\section{Bibliographie / Webographie}
-\begin{itemize}
-    \item \textbf{Inria - Cryptris} : Le jeu original et la documentation scientifique. \url{http://inriamecsci.github.io/cryptris/}
-    \item \textbf{Pygame Documentation} : Référence technique pour le moteur de jeu. \url{https://www.pygame.org/docs/}
-    \item \textbf{Lattice-based Cryptography (Peikert)} : "A Decade of Lattice Cryptography", pour comprendre la théorie mathématique derrière le jeu.
-    \item \textbf{GitLab ESIEA} : Dépôt du projet.
-\end{itemize}
+\subsection{Perspectives d'Avenir}
+Ce projet pose les bases solides d'une suite potentielle. Plusieurs axes d'amélioration sont envisageables :
+\begin{enumerate}
+    \item \textbf{Mode Multijoueur Réseau} : Remplacer l'IA locale par un véritable adversaire distant via Sockets.
+    \item \textbf{Portage Web (WASM)} : Utiliser Pygbag pour rendre le jeu accessible directement dans un navigateur.
+    \item \textbf{Algorithme de Génération Certifié} : Résoudre définitivement le problème des boucles infinies en implémentant un générateur de bases de réseaux garantissant l'orthogonalité stricte (algorithme plus complexe mais déterministe).
+\end{enumerate}
 
-\newpage
-\section{Annexes}
-\subsection{Algorithme de Génération de Clé Privée (Python)}
-\begin{lstlisting}[language=Python, caption=Génération de Clé Unidirectionnelle]
-def gen_random_private_key(length):
-    """
-    Génère une clé privée "Unidirectionnelle PARFAITE".
-    On force le PIC à l'index 0.
-    Structure Fixe : [Pic, 0, -x, -y, 0, ...]
-    """
-    vector = [0] * length
-    
-    # 1. Le Pilier (Toujours à l'index 0)
-    peak_val = random.randint(3, 5)
-    peak_idx = 0 
-    vector[peak_idx] = peak_val
-    
-    # 2. Distribution (Strictement à Droite)
-    needed = 1 - peak_val
-    dist_options = [2, 3, 4] if length > 8 else [2, 3]
-        
-    while needed != 0:
-        dist = random.choice(dist_options)
-        target_idx = (peak_idx + dist) % length
-        
-        step = -1
-        if vector[target_idx] > -2:
-            vector[target_idx] += step
-            needed -= step
-            
-    return vector
-\end{lstlisting}
+\section{Bibliographie}
+\begin{thebibliography}{9}
+\bibitem{inria_web}
+    Inria & CNRS,
+    \textit{Cryptris : Jeu Vidéo Officiel},
+    \url{https://inriamecsci.github.io/cryptris/}
+
+\bibitem{inria_git}
+    Daformat (GitHub),
+    \textit{Code Source Original (JavaScript) de Cryptris},
+    \url{https://github.com/daformat/cryptris}
+
+\bibitem{cnrs_1}
+    Images des Mathématiques (CNRS),
+    \textit{Cryptris (1/2) : Comprendre une des techniques les plus sophistiquées},
+    \url{https://images-archive.math.cnrs.fr/Cryptris-1-2-Comprendre-une-des-techniques-les-plus-sophistiquees-de.html}
+
+\bibitem{cnrs_2}
+    Images des Mathématiques (CNRS),
+    \textit{Cryptris (2/2) : Les dessous géométriques de Cryptris},
+    \url{https://images-archive.math.cnrs.fr/Cryptris-2-2-Les-dessous-geometriques-de-Cryptris-la-cryptographie-sur-les.html}
+
+\bibitem{regev}
+    Oded Regev,
+    \textit{On lattices, learning with errors, random linear codes, and cryptography},
+    Journal of the ACM, 2009.
+\end{thebibliography}
 
 \end{document}

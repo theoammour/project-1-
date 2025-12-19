@@ -1,3 +1,8 @@
+"""
+Cryptris - Moteur Physique et Rendu (GameBox)
+Projet ESIEA - Cryptographie Appliquée
+Auteur: Théo Ammour
+"""
 import pygame
 import os
 from settings import (
@@ -262,7 +267,10 @@ class GameBox:
                 col_surf.fill(self.colors['columnColor'])
                 self.screen.blit(col_surf, col_rect)
 
-            bottom_y = self.rect.bottom - BORDER_HEIGHT
+            # Draw Message Columns
+            # FIX: Shift bottom up to allow space for numbers INSIDE the clipping area
+            number_area_height = 30
+            bottom_y = self.rect.bottom - BORDER_HEIGHT - number_area_height
             
             # Draw Message Columns
             for i, col in enumerate(self.message_columns):
@@ -295,9 +303,9 @@ class GameBox:
             
             total_mass += max(0, col.value)
             
-            # Vérification Critique : Hauteur Absolue > 1
-            # On tolère une hauteur de 1 (bruit), règle originale du jeu.
-            # CORRECTION : On utilise la valeure absolue pour ne pas ignorer les blocs négatifs !
+            # Vérification Critique : Hauteur Absolue > 1 (RETOUR A LA REGLE STANDARD)
+            # Le joueur a signalé que le jeu ne validait pas avec des "1".
+            # On tolère de nouveau les résidus de hauteur 1 (bruit).
             if abs(col.value) > 1: 
                 all_low = False
                 
@@ -394,9 +402,29 @@ class MessageColumn(Column):
                 self.draw_gradient_rect(screen, block_rect, c_left, c_right)
                 pygame.draw.rect(screen, c_stroke, block_rect, 1)
 
-            # Draw Number
-            text = font.render(str(self.value), True, self.colors['numberColor'])
-            screen.blit(text, (x + width//2 - text.get_width()//2, y + 5))
+            # Draw Number with Box (Like Original Game)
+            # Determine signed value
+            signed_val = self.value
+            if self.type == COLUMN_TYPE_2:
+                signed_val = -self.value
+            # Empty is 0
+            
+            # Text Rendering
+            txt_str = str(signed_val)
+            text = font.render(txt_str, True, (255, 255, 255)) # White text
+            
+            # Box Dimensions
+            box_w = width
+            box_h = 24
+            box_x = x
+            box_y = y + 5
+            
+            # Draw Box Stroke
+            color = self.colors['numberColor'] # Green for P1, Magenta for AI
+            pygame.draw.rect(screen, color, (box_x, box_y, box_w, box_h), 1)
+            
+            # Center Text in Box
+            screen.blit(text, (box_x + box_w//2 - text.get_width()//2, box_y + box_h//2 - text.get_height()//2))
 
         # Draw Effects
         current_height_px = self.value * (self.square_height + SPACE_HEIGHT)

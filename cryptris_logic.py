@@ -1,3 +1,8 @@
+"""
+Cryptris - Logique Mathématique (LWE & Lattice)
+Projet ESIEA - Cryptographie Appliquée
+Auteur: Théo Ammour
+"""
 import math
 import random
 from settings import (
@@ -144,71 +149,43 @@ def gen_public_keys():
     """
     pk = {}
     for length in AUTHORIZED_LENGTH:
-        is_generated = False
-        attempts = 0
-        best_pk = None
-        best_score = -1
-        
-        while not is_generated:
-            attempts += 1
-            # sks correspond aux clés privées pré-générées
-            candidate_pk = gen_public_key(length, PREGENERATED_PRIVATE_KEYS[length], REPEAT_GEN_PUBLIC_KEY_LIST[length])
-            s = score(candidate_pk)
-            
-            if s > best_score:
-                best_score = s
-                best_pk = candidate_pk
-            
-            if s >= 2:
-                pk[length] = candidate_pk
-                is_generated = True
-            elif attempts > 100:
-                # Utilisation de la meilleure clé trouvée après 100 tentatives
-                # pour garantir le chargement du jeu.
-                pk[length] = best_pk
-                is_generated = True
+        # HARDCORE MODE: No filtering! We take the first generated key.
+        # This replicates the original game's randomness.
+        candidate_pk = gen_public_key(length, PREGENERATED_PRIVATE_KEYS[length], REPEAT_GEN_PUBLIC_KEY_LIST[length])
+        pk[length] = candidate_pk
     return pk
 
 def gen_random_private_key(length):
     """
-    Génère une clé privée "Unidirectionnelle PARFAITE".
-    
-    Correction Finale :
-    - On force le PIC à l'index 0.
-    - Ainsi, quand le joueur clique sur une colonne, c'est CETTE colonne qui reçoit le Pic.
-    - Les compensations sont toujours à DROITE (index +2, +3...).
-    - Jamais de retour en arrière (wrap-around limité à la fin du tableau).
-    
-    Structure Fixe : [Pic, 0, -x, -y, 0, ...]
+    Génère une clé privée LISIBLE et FACILE.
+    1. Un Pic Majeur (3 à 5).
+    2. Reste initialisé à 0.
+    3. Correction itérative pour atteindre Somme = 1 (petites touches de +/- 1).
     """
     vector = [0] * length
     
-    # 1. Le Pilier (Toujours à l'index 0 pour viser juste)
-    peak_val = random.randint(3, 5)
-    peak_idx = 0 # FORCE 0. C'est crucial pour l'intuition "Je clique Ici -> J'agis Ici".
+    # 1. Placer un Pic Majeur (Fixé à 3 pour éviter les boucles paires)
+    peak_idx = random.randint(0, length - 1)
+    peak_val = 3 # FORCE 3. (Avec 4, on peut bloquer sur des 2. Avec 3, tout est cassable).
     vector[peak_idx] = peak_val
     
-    # 2. Distribution (Strictement à Droite)
-    needed = 1 - peak_val
+    # 2. Correction Itérative (On évite de créer un gros tas secondaire)
+    current_sum = peak_val
     
-    # Options de distance positives uniquement
-    if length <= 8:
-        dist_options = [2, 3] 
-    else:
-        dist_options = [2, 3, 4]
-        
-    while needed != 0:
-        dist = random.choice(dist_options)
-        # On remplit vers la droite
-        target_idx = (peak_idx + dist) % length
-        
-        # Petit garde-fou : Sur un tableau circulaire, faut pas que 'droite' retombe sur 'gauche' trop vite.
-        # Mais avec dist 2/3/4 sur length 8+, on est safe.
-        
-        step = -1
-        if vector[target_idx] > -2:
-            vector[target_idx] += step
-            needed -= step
+    # Tant que la somme n'est pas 1
+    # On ajoute ou retire 1, petit à petit, sur des cases NON-PIC
+    while current_sum != 1:
+        # Choix d'une case au hasard (hors pic)
+        rand_idx = random.randint(0, length - 1)
+        if rand_idx == peak_idx:
+            continue
+            
+        if current_sum > 1:
+            vector[rand_idx] -= 1
+            current_sum -= 1
+        else: # current_sum < 1
+            vector[rand_idx] += 1
+            current_sum += 1
             
     return vector
 
@@ -307,3 +284,62 @@ def create_a_data_message(crypted_message, current_length):
             data_message['message_type'].append(COLUMN_TYPE_2)
             
     return data_message
+
+# --- Nouveau Chiffrement Simplifié (3 Blocs) ---
+
+def simple_string_to_ternary(text):
+    """
+    Convertit une chaîne de caractères en vecteur ternaire [-1, 0, 1].
+    Formule : (Index(Lettre) - 1) % 3 - 1
+    A=1 -> 0 -> -1
+    B=2 -> 1 ->  0
+    C=3 -> 2 ->  1
+    ...
+    """
+    vector = []
+    text = text.upper()
+    for char in text:
+        if 'A' <= char <= 'Z':
+            idx = ord(char) - ord('A') + 1 # 1-26
+            val = (idx - 1) % 3 - 1
+            vector.append(val)
+        elif char == ' ':
+             vector.append(0) # Espace = 0
+        else:
+            # Autres caractères ignorés ou 0
+            vector.append(0)
+            
+    return vector
+
+def encrypt_simple_message(plain_text, public_key, length):
+    """
+    Chiffre un message texte court en utilisant l'encodage simplifié.
+    Retourne UN SEUL vecteur de taille Length (le puzzle).
+    """
+    # 1. Conversion
+    msg_vector = simple_string_to_ternary(plain_text)
+    
+    # 2. Fit to Length
+    if len(msg_vector) > length:
+        msg_vector = msg_vector[:length]
+    while len(msg_vector) < length:
+        msg_vector.append(0)
+        
+    # 3. Chiffrement LWE (Simulé)
+    encrypted = list(msg_vector)
+    
+    # Import local éviter circulaire
+    from settings import REPEAT_CHIFFRE_MSG_LIST
+    # NOTE: rotate, sum_vectors, mult_vector are defined in this file.
+    
+    repetitions = REPEAT_CHIFFRE_MSG_LIST.get(length, 2)
+    
+    for _ in range(repetitions):
+        k = random.randint(0, length)
+        r = random.choice([-1, 1])
+        
+        pk_rot = rotate(length, public_key, k)
+        weighted_pk = mult_vector(r, pk_rot)
+        encrypted = sum_vectors(encrypted, weighted_pk)
+        
+    return encrypted

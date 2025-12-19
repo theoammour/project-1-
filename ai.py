@@ -1,3 +1,8 @@
+"""
+Cryptris - Intelligence Artificielle (Adversaire)
+Projet ESIEA - Cryptographie Appliquée
+Auteur: Théo Ammour
+"""
 import pygame
 import random
 

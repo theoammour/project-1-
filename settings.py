@@ -1,3 +1,8 @@
+"""
+Cryptris - Configuration et Constantes
+Projet ESIEA - Cryptographie Appliquée
+Auteur: Théo Ammour
+"""
 import random
 
 # Fichier de configuration Cryptris
@@ -34,12 +39,13 @@ REPEAT_GEN_PUBLIC_KEY_LIST = {
 
 # Combien de fois la clé publique doit être appliquée pour chiffrer un message
 # REDUCED DENSITY (User Request: "Levels less filled")
+# REPEAT_CHIFFRE_MSG_LIST : Minimal density (User Request: "Too filled")
 REPEAT_CHIFFRE_MSG_LIST = {
-    8: 4,   # Was 7
-    10: 5,  # Was 8
-    12: 6,  # Was 9
-    14: 7,  # Was 10
-    16: 8   # Was 11
+    8: 1,   # Minimum absolute
+    10: 2,
+    12: 3,
+    14: 4,
+    16: 5
 }
 
 # Paramètres IA
