@@ -1,0 +1,9 @@
+
+.agent/
+.claude/
+.terraform/
+*.tfstate
+*.tfstate.backup
+nul
+__pycache__/
+*.pyc
