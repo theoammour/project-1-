@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: kube-prometheus-stack
+    targetRevision: 61.3.2
+    helm:
+      values: |
+        grafana:
+          adminPassword: changeme-en-prod
+        prometheus:
+          prometheusSpec:
+            # Decouvre automatiquement les pods annotes prometheus.io/scrape.
+            podMonitorSelectorNilUsesHelmValues: false
+            serviceMonitorSelectorNilUsesHelmValues: false
+            retention: 7d
+            resources:
+              requests:
+                cpu: 100m
+                memory: 512Mi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      # Les CRD du chart sont volumineuses : on desactive la validation serveur.
+      - ServerSideApply=true

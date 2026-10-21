@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: demo-dev
+
+resources:
+  - ../../base
+
+# Environnement de dev : une seule replica.
+replicas:
+  - name: demo-api
+    count: 1
+
+# Le tag d'image est mis a jour automatiquement par la CI a chaque build.
+images:
+  - name: demo-api
+    newName: demo-api
+    newTag: dev

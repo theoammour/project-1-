@@ -1,0 +1,15 @@
+# Copier ce fichier en terraform.tfvars et adapter les valeurs.
+
+region          = "eu-west-3"
+project         = "gitops-eks"
+cluster_version = "1.30"
+
+# Depot Git suivi par ArgoCD (remplacer par VOTRE fork/depot).
+gitops_repo_url        = "https://github.com/theoammour/gitops-eks-platform"
+gitops_target_revision = "main"
+
+# Dimensionnement des noeuds.
+node_instance_types = ["t3.medium"]
+node_min_size       = 2
+node_max_size       = 4
+node_desired_size   = 2

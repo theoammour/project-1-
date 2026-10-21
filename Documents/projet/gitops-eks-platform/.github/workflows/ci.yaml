@@ -1,0 +1,99 @@
+name: CI - demo-api
+
+# Se declenche quand le code de l'application change.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/demo-api/**"
+      - ".github/workflows/ci.yaml"
+  workflow_dispatch:
+
+env:
+  AWS_REGION: eu-west-3
+  ECR_REPOSITORY: gitops-eks/demo-api
+
+# Autorisation OIDC : pas de cles AWS longue duree stockees dans GitHub.
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Installer les dependances
+        working-directory: apps/demo-api
+        run: |
+          pip install -r requirements.txt pytest
+      - name: Lancer les tests
+        working-directory: apps/demo-api
+        run: pytest -q
+
+  build-and-push:
+    needs: test
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Definir le tag d'image (sha court)
+        id: meta
+        run: echo "tag=sha-$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Build de l'image
+        working-directory: apps/demo-api
+        run: docker build -t demo-api:${{ steps.meta.outputs.tag }} .
+
+      - name: Scan de securite (Trivy)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: demo-api:${{ steps.meta.outputs.tag }}
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
+
+      - name: Authentification AWS via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_GHA_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Connexion a ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Push de l'image
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          docker tag demo-api:$TAG $REGISTRY/$ECR_REPOSITORY:$TAG
+          docker push $REGISTRY/$ECR_REPOSITORY:$TAG
+
+  # Mise a jour GitOps : on ne deploie PAS directement. On met a jour le tag
+  # d'image dans le manifest, et ArgoCD se charge de resynchroniser le cluster.
+  update-manifest:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Mise a jour du tag dans l'overlay prod
+        env:
+          TAG: ${{ needs.build-and-push.outputs.image_tag }}
+        run: |
+          cd apps/demo-api/k8s/overlays/prod
+          sed -i "s/newTag: .*/newTag: $TAG/" kustomization.yaml
+      - name: Commit du nouveau tag
+        run: |
+          git config user.name "ci-bot"
+          git config user.email "ci-bot@users.noreply.github.com"
+          git add apps/demo-api/k8s/overlays/prod/kustomization.yaml
+          git commit -m "ci: deploy demo-api ${{ needs.build-and-push.outputs.image_tag }}" || echo "Rien a commiter"
+          git push
