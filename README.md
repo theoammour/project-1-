@@ -1,7 +1,7 @@
 <h1 align="center">Théo Ammour — Portfolio Cloud & DevOps</h1>
 
 <p align="center">
-  Consultant Cloud · Certifié AWS · Ingénieur ESIEA<br/>
+  Consultant Cloud · Certifié AWS<br/>
   <em>Infrastructure as Code · Kubernetes · CI/CD · Automatisation sur AWS</em>
 </p>
 
@@ -18,8 +18,8 @@
 
 ## 👋 À propos
 
-Consultant cloud diplômé de l'**ESIEA** et certifié **AWS**, avec trois années
-d'expérience en conseil technique cloud (apprentissage). Je conçois, automatise
+Consultant cloud certifié **AWS**, avec trois années d'expérience en conseil
+technique cloud (apprentissage). Je conçois, automatise
 et exploite des infrastructures sur AWS, avec une approche *Infrastructure as
 Code* et une culture DevOps : tout est reproductible, versionné et documenté.
 
